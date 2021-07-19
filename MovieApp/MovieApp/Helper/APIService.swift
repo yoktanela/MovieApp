@@ -119,4 +119,12 @@ public class APIService: NSObject {
             }
         }
     }
+    
+    func getVideos(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ cast: VideoResult?) -> Void) {
+        AF.request(Router.getVideos(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
+            self.parseAPIResponse(response: response) { (success, message, videos: VideoResult?) in
+                completion(success, message, videos)
+            }
+        }
+    }
 }
