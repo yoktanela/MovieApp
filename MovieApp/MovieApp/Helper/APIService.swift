@@ -135,4 +135,12 @@ public class APIService: NSObject {
             }
         }
     }
+    
+    func getGenres(completion: @escaping (_ success: Bool, _ message: String?, _ movieList: Genres?) -> Void) {
+        AF.request(Router.getGenres(language: Locale.preferredLanguages[0])).responseJSON { (response) in
+            self.parseAPIResponse(response: response) { (success, message, genres: Genres?) in
+                completion(success, message, genres)
+            }
+        }
+    }
 }

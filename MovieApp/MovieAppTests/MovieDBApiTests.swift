@@ -209,4 +209,18 @@ class MovieDBApiTests: XCTestCase {
             XCTAssertNotNil(errorResponse)
         }
     }
+    
+    func testGetGenresWithExpectedResult() throws {
+        var genres: Genres?
+        let genresExpectation = expectation(description: "genres")
+        
+        let apiService = APIService()
+        apiService.getGenres( completion: { success, message, result  in
+            genres = result
+            genresExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(genres)
+        }
+    }
 }

@@ -26,6 +26,7 @@
 		186F65BD26A6121200F07D44 /* Media.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65BC26A6121200F07D44 /* Media.swift */; };
 		186F65BF26A623E600F07D44 /* Cast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65BE26A623E500F07D44 /* Cast.swift */; };
 		186F65C126A62B1A00F07D44 /* Video.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65C026A62B1A00F07D44 /* Video.swift */; };
+		186F65C326A633EF00F07D44 /* Genre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65C226A633EF00F07D44 /* Genre.swift */; };
 		1B610A5760577535F3E7115B /* Pods_MovieApp_MovieAppUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 208C70958B6E1B9A5A720CA4 /* Pods_MovieApp_MovieAppUITests.framework */; };
 		7F4DD76455255F6320EA44C2 /* Pods_MovieApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C28736D0592DE9F18889E9B /* Pods_MovieApp.framework */; };
 		F0C69F85A4482A84EF6AF0AD /* Pods_MovieAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90D8EEE9CD854960E9529734 /* Pods_MovieAppTests.framework */; };
@@ -75,6 +76,7 @@
 		186F65BC26A6121200F07D44 /* Media.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Media.swift; sourceTree = "<group>"; };
 		186F65BE26A623E500F07D44 /* Cast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cast.swift; sourceTree = "<group>"; };
 		186F65C026A62B1A00F07D44 /* Video.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Video.swift; sourceTree = "<group>"; };
+		186F65C226A633EF00F07D44 /* Genre.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Genre.swift; sourceTree = "<group>"; };
 		1C28736D0592DE9F18889E9B /* Pods_MovieApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MovieApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DAB726C4E4AC8E1FCB94992 /* Pods-MovieApp-MovieAppUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MovieApp-MovieAppUITests.release.xcconfig"; path = "Target Support Files/Pods-MovieApp-MovieAppUITests/Pods-MovieApp-MovieAppUITests.release.xcconfig"; sourceTree = "<group>"; };
 		208C70958B6E1B9A5A720CA4 /* Pods_MovieApp_MovieAppUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MovieApp_MovieAppUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -190,6 +192,7 @@
 				186F65BC26A6121200F07D44 /* Media.swift */,
 				186F65BE26A623E500F07D44 /* Cast.swift */,
 				186F65C026A62B1A00F07D44 /* Video.swift */,
+				186F65C226A633EF00F07D44 /* Genre.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -468,6 +471,7 @@
 				1802281226A5745A00168256 /* SceneDelegate.swift in Sources */,
 				1802284526A5921100168256 /* APIService.swift in Sources */,
 				1802284126A591DC00168256 /* Constants.swift in Sources */,
+				186F65C326A633EF00F07D44 /* Genre.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
