@@ -10,6 +10,7 @@ import XCTest
 
 class MovieDBApiTests: XCTestCase {
     
+    // MARK: Tests for getPopularMovies
     func testGetMoviesWithExpectedResult() throws {
         var moviesResponse: [Movie]?
         let moviesExpectation = expectation(description: "movies")
@@ -39,6 +40,7 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
+    // MARK: Tests for getPerson
     func testGetPersonWithExpectedResult() throws {
         var personResponse: Person?
         let personExpectation = expectation(description: "person")
@@ -69,6 +71,7 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
+    // MARK: Tests for getSearchResults
     func testGetSearchResultsWithExpectedResult() throws {
         var movies: [Movie]?
         var persons: [Person]?
@@ -120,6 +123,7 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
+    // MARK: Tests for getCast
     func testGetCastWithExpectedResult() throws {
         var cast: Cast?
         let castExpectation = expectation(description: "cast")
@@ -150,6 +154,7 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
+    // MARK: Tests for getVideos
     func testGetVideosWithExpectedResult() throws {
         var videoResult: VideoResult?
         let videoExpectation = expectation(description: "video")
@@ -180,6 +185,7 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
+    // MARK: Tests for getMovieCredits
     func testGetMovieCreditsWithExpectedResult() throws {
         var movies: MovieCreditResponse?
         let moviesExpectation = expectation(description: "movie_credits")
@@ -210,6 +216,7 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
+    // MARK: Tests for getGenres
     func testGetGenresWithExpectedResult() throws {
         var genres: Genres?
         let genresExpectation = expectation(description: "genres")

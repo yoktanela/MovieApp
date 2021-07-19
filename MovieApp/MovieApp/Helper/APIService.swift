@@ -30,6 +30,7 @@ public class APIService: NSObject {
         super.init()
     }
     
+    // Generic function to parse api response
     private func parseAPIResponse<T: Decodable> (response: AFDataResponse<Any>, completion: @escaping (_ success: Bool, _ message: String?, _ data: T?) -> Void) {
         switch response.result {
         case .success:
@@ -39,6 +40,7 @@ public class APIService: NSObject {
             
             let jsonDecoder = JSONDecoder()
             do {
+                // Decode api result using given class type
                 let object = try jsonDecoder.decode(T.self, from: data)
                 completion(true, nil, object)
             } catch {
@@ -65,6 +67,14 @@ public class APIService: NSObject {
         }
     }
     
+    /** Used to get popular movies via using Movie Database API
+    - Parameters:
+        - page: Specify which page to query.
+        - completion: Invoked when request failed or completed.
+        - success: Boolean value that returns true if list of desired movie could be reached.
+        - message: A string value that returns error message if any error occurs.
+        - movieList: List of ‘Movie’ objects.
+     */
     func getPopularMovies(page: Int = 1, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: [Movie]?) -> Void) {
         AF.request(Router.getPopularMovies(page: page, language: Locale.preferredLanguages[0])).responseJSON { (response) in
             self.parseAPIResponse(response: response) { (success, message, moviesResponse: MoviesResponse?) in
@@ -73,7 +83,15 @@ public class APIService: NSObject {
         }
     }
     
-    func getPerson(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: Person?) -> Void) {
+    /** Used to get person by id via using Movie Database API
+    - Parameters:
+        - id: Unique identifier for person.
+        - completion: Invoked when request failed or completed.
+        - success: Boolean value that returns true if desired person could be reached.
+        - message: A string value that returns error message if any error occurs.
+        - person: Person object that meets requested features.
+     */
+    func getPerson(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ person: Person?) -> Void) {
         AF.request(Router.getPerson(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
             self.parseAPIResponse(response: response) { (success, message, person: Person?) in
                 completion(success, message, person)
@@ -81,12 +99,22 @@ public class APIService: NSObject {
         }
     }
     
+    /** Used to search multiple models in a single request.
+    - Parameters:
+        - searchText: Pass a text query to search.
+        - completion: Invoked when request failed or completed.
+        - success: Boolean value that returns true if api response is successful
+        - message: A string value that returns error message if any error occurs.
+        - movieList: List of ‘Movie’ objects.
+        - personList: List of ‘Person’ objects.
+     */
     func getSearchResults(searchText: String, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: [Movie]?, _ personList: [Person]?) -> Void) {
         AF.request(Router.getSearchResults(searchText: searchText, language: Locale.preferredLanguages[0])).responseJSON { (response) in
             self.parseAPIResponse(response: response) { (success, message, mediaResponse: MediaResponse?) in
                 var movies: [Movie]?
                 var persons: [Person]?
                 
+                // Filter movies and persons from the media list that contains both media types.
                 mediaResponse?.results.forEach({ media in
                     switch media {
                     case .movie:
@@ -112,6 +140,14 @@ public class APIService: NSObject {
         }
     }
     
+    /** Used to get the cast for a movie.
+    - Parameters:
+        - id: Unique identifier for movie.
+        - completion: Invoked when request failed or completed.
+        - success: Boolean value that returns true if api response is successful.
+        - message: A string value that returns error message if any error occurs.
+        - cast: 'Cast' object that contains all cast memebers of movie
+     */
     func getCast(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ cast: Cast?) -> Void) {
         AF.request(Router.getCast(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
             self.parseAPIResponse(response: response) { (success, message, cast: Cast?) in
@@ -120,7 +156,15 @@ public class APIService: NSObject {
         }
     }
     
-    func getVideos(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ cast: VideoResult?) -> Void) {
+    /** Used to get available videos for a movie.
+    - Parameters:
+        - id: Unique identifier for movie.
+        - completion: Invoked when request failed or completed.
+        - success: Boolean value that returns true if api response is successful.
+        - message: A string value that returns error message if any error occurs.
+        - videoResult: 'VideoResult' object that contains all available videos for movie.
+     */
+    func getVideos(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ videoResult: VideoResult?) -> Void) {
         AF.request(Router.getVideos(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
             self.parseAPIResponse(response: response) { (success, message, videos: VideoResult?) in
                 completion(success, message, videos)
@@ -128,15 +172,30 @@ public class APIService: NSObject {
         }
     }
     
-    func getMovieCredits(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: MovieCreditResponse?) -> Void) {
+    /** Used to get the movie credits for a person.
+    - Parameters:
+        - id: Unique identifier for person.
+        - completion: Invoked when request failed or completed.
+        - success: Boolean value that returns true if api response is successful.
+        - message: A string value that returns error message if any error occurs.
+        - movieCreditResponse: 'MovieCreditResponse' object that contains movies that person take role.
+     */
+    func getMovieCredits(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ movieCreditResponse: MovieCreditResponse?) -> Void) {
         AF.request(Router.getMovieCredits(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, movieList: MovieCreditResponse?) in
-                completion(success, message, movieList)
+            self.parseAPIResponse(response: response) { (success, message, movieCreditResponse: MovieCreditResponse?) in
+                completion(success, message, movieCreditResponse)
             }
         }
     }
     
-    func getGenres(completion: @escaping (_ success: Bool, _ message: String?, _ movieList: Genres?) -> Void) {
+    /** Used to get the list of official genres for movies.
+    - Parameters:
+        - completion: Invoked when request failed or completed.
+        - success: Boolean value that returns true if api response is successful.
+        - message: A string value that returns error message if any error occurs.
+        - genres: 'Genres' object that contains all genres for movies.
+     */
+    func getGenres(completion: @escaping (_ success: Bool, _ message: String?, _ genres: Genres?) -> Void) {
         AF.request(Router.getGenres(language: Locale.preferredLanguages[0])).responseJSON { (response) in
             self.parseAPIResponse(response: response) { (success, message, genres: Genres?) in
                 completion(success, message, genres)

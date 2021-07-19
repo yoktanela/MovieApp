@@ -7,6 +7,7 @@
 
 import Foundation
 
+// Enum object that helps to decode different objects that has different media types.
 enum Media: Decodable {
     case movie(Movie)
     case person(Person)
@@ -26,6 +27,7 @@ enum Media: Decodable {
             let type = try container.decode(MediaType.self, forKey: .type)
             let associatedContainer = try decoder.singleValueContainer()
             
+            // Based on the media type use different structs to decode data
             switch type {
             case .movie:
                 let movie = try associatedContainer.decode(Movie.self)
