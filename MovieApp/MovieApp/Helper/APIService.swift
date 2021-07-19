@@ -111,4 +111,12 @@ public class APIService: NSObject {
             }
         }
     }
+    
+    func getCast(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ cast: Cast?) -> Void) {
+        AF.request(Router.getCast(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
+            self.parseAPIResponse(response: response) { (success, message, cast: Cast?) in
+                completion(success, message, cast)
+            }
+        }
+    }
 }

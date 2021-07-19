@@ -25,7 +25,7 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
-    func testGetMoviesWithPageExceedError() {
+    func testGetMoviesWithPageExceedError() throws {
         let apiService = APIService()
         let moviesExpectation = expectation(description: "movies")
         var errorResponse: String?
@@ -117,6 +117,36 @@ class MovieDBApiTests: XCTestCase {
         })
         waitForExpectations(timeout: 1) { (error) in
             XCTAssertTrue(movies == nil && persons == nil)
+        }
+    }
+    
+    func testGetCastWithExpectedResult() throws {
+        var cast: Cast?
+        let castExpectation = expectation(description: "cast")
+        
+        let apiService = APIService()
+        let movieId = 121
+        apiService.getCast(id: movieId, completion: { success, message, result  in
+            cast = result
+            castExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(cast)
+        }
+    }
+    
+    func testGetCastWithErrorResult() throws {
+        let castExpectation = expectation(description: "cast")
+        var errorResponse: String?
+        
+        let apiService = APIService()
+        let movieId = 100000
+        apiService.getCast(id: movieId, completion: { success, message, result  in
+            errorResponse = message
+            castExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(errorResponse)
         }
     }
 }

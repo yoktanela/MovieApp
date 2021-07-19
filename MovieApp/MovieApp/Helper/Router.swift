@@ -14,18 +14,19 @@ internal enum Router: URLRequestConvertible {
     case getPopularMovies(page: Int, language: String)
     case getPerson(id: Int, language: String)
     case getSearchResults(searchText: String, language: String)
+    case getCast(id: Int, language: String)
     
     func asURLRequest() throws -> URLRequest {
         var method: HTTPMethod {
             switch self {
-            case .getPopularMovies, .getPerson, .getSearchResults:
+            case .getPopularMovies, .getPerson, .getSearchResults, .getCast:
                 return .get
             }
         }
         
         let params: ([String: Any]?) = {
             switch self {
-            case .getPopularMovies, .getPerson, .getSearchResults:
+            case .getPopularMovies, .getPerson, .getSearchResults, .getCast:
                 return nil
             }
         }()
@@ -43,6 +44,9 @@ internal enum Router: URLRequestConvertible {
             case .getSearchResults(let searchText, let language):
                 relativePath = "search/multi"
                 query = "?language=\(language)&query=\(searchText)"
+            case .getCast(let id, let language):
+                relativePath = "movie/\(id)/credits"
+                query = "?language=\(language)"
             }
             
             var url = URL(string: Router.baseURLString)!
