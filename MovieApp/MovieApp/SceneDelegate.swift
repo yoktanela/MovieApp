@@ -7,6 +7,7 @@
 
 import UIKit
 
+@available(iOS 13.0, *)
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
@@ -16,6 +17,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
         // If using a storyboard, the `window` property will automatically be initialized and attached to the scene.
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
+        let navigationController = UINavigationController()
+        let mainView = ViewController(nibName: nil, bundle: nil)
+        navigationController.viewControllers = [mainView]
+        navigationController.navigationBar.isTranslucent = false
+        self.window!.rootViewController = navigationController
+        self.window!.makeKeyAndVisible()
+        self.window!.backgroundColor = .white
         guard let _ = (scene as? UIWindowScene) else { return }
     }
 
