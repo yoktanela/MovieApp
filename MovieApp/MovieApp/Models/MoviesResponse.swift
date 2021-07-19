@@ -21,11 +21,11 @@ struct MoviesResponse: Decodable {
     }
 }
 
-struct MoviesErrorResponse: Decodable {
+struct APIErrorResponse: Decodable {
     let errors: [String]
 }
 
-struct MoviesFailResponse: Decodable {
+struct APIFailResponse: Decodable {
     var statusCode: Int
     var statusMessage: String
     var success: Bool

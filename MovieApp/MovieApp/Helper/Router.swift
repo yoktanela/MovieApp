@@ -12,18 +12,19 @@ internal enum Router: URLRequestConvertible {
     static let baseURLString = Constants.movieDBApiBaseURL
     
     case getPopularMovies(page: Int, language: String)
+    case getPerson(id: Int, language: String)
     
     func asURLRequest() throws -> URLRequest {
         var method: HTTPMethod {
             switch self {
-            case .getPopularMovies:
+            case .getPopularMovies, .getPerson:
                 return .get
             }
         }
         
         let params: ([String: Any]?) = {
             switch self {
-            case .getPopularMovies:
+            case .getPopularMovies, .getPerson:
                 return nil
             }
         }()
@@ -35,6 +36,9 @@ internal enum Router: URLRequestConvertible {
             case .getPopularMovies(let page, let language):
                 relativePath = "movie/popular"
                 query = "?page=\(page)&language=\(language)"
+            case .getPerson(let id, let language):
+                relativePath = "person"
+                query = "/\(id)?language=\(language)"
             }
             
             var url = URL(string: Router.baseURLString)!
