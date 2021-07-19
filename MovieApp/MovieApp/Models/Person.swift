@@ -20,3 +20,8 @@ struct Person: Decodable {
         case profilePath = "profile_path"
     }
 }
+
+struct MovieCreditResponse: Decodable {
+    let id: Int
+    let cast: [Movie]?
+}

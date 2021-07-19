@@ -179,4 +179,34 @@ class MovieDBApiTests: XCTestCase {
             XCTAssertNotNil(errorResponse)
         }
     }
+    
+    func testGetMovieCreditsWithExpectedResult() throws {
+        var movies: MovieCreditResponse?
+        let moviesExpectation = expectation(description: "movie_credits")
+        
+        let apiService = APIService()
+        let personId = 113
+        apiService.getMovieCredits(id: personId, completion: { success, message, result  in
+            movies = result
+            moviesExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(movies)
+        }
+    }
+    
+    func testGetMovieCreditsWithErrorResult() throws {
+        let moviesExpectation = expectation(description: "movie_credits")
+        var errorResponse: String?
+        
+        let apiService = APIService()
+        let personId = 1000000
+        apiService.getMovieCredits(id: personId, completion: { success, message, result  in
+            errorResponse = message
+            moviesExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(errorResponse)
+        }
+    }
 }

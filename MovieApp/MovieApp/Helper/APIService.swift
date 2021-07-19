@@ -127,4 +127,12 @@ public class APIService: NSObject {
             }
         }
     }
+    
+    func getMovieCredits(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: MovieCreditResponse?) -> Void) {
+        AF.request(Router.getMovieCredits(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
+            self.parseAPIResponse(response: response) { (success, message, movieList: MovieCreditResponse?) in
+                completion(success, message, movieList)
+            }
+        }
+    }
 }
