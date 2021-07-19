@@ -27,10 +27,26 @@ public class APIService: NSObject {
                     let moviesData = try jsonDecoder.decode(MoviesResponse.self, from: data)
                     completion(true, nil, moviesData.results)
                 } catch {
-                    completion(false, "error", nil)
+                    do {
+                        let result = try jsonDecoder.decode(MoviesErrorResponse.self, from: data)
+                        if result.errors.count > 0 {
+                            completion(false, result.errors[0], nil)
+                        } else {
+                            //TODO: Localize error message
+                            completion(false, "unknown error", nil)
+                        }
+                    } catch {
+                        do {
+                            let failResult = try jsonDecoder.decode(MoviesFailResponse.self, from: data)
+                            completion(false, failResult.statusMessage, nil)
+                        } catch {
+                            //TODO: Localize error message
+                            completion(false, "unknown error", nil)
+                        }
+                    }
                 }
             case .failure(let error):
-                completion(false, "error", nil)
+                completion(false, error.errorDescription, nil)
             }
         }
     }

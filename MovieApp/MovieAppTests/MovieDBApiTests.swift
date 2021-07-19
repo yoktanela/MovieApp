@@ -23,4 +23,18 @@ class MovieDBApiTests: XCTestCase {
             XCTAssertNotNil(moviesResponse)
         }
     }
+    
+    func testGetMoviesWithPageExceedError() {
+        let apiService = APIService()
+        let moviesExpectation = expectation(description: "movies")
+        var errorResponse: String?
+        
+        apiService.getPopularMovies(page: 1000, completion: { success, message, movieData in
+            errorResponse = message
+            moviesExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(errorResponse)
+        }
+    }
 }

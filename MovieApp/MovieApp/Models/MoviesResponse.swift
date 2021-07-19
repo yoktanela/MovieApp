@@ -20,3 +20,19 @@ struct MoviesResponse: Decodable {
         case totalResults = "total_results"
     }
 }
+
+struct MoviesErrorResponse: Decodable {
+    let errors: [String]
+}
+
+struct MoviesFailResponse: Decodable {
+    var statusCode: Int
+    var statusMessage: String
+    var success: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case statusCode = "status_code"
+        case statusMessage = "status_message"
+        case success
+    }
+}
