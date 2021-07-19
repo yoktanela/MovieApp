@@ -10,11 +10,10 @@ import Foundation
 // MARK: - Movie
 struct Movie: Decodable {
     let id: Int
-    let originalTitle, overview, posterPath: String
+    let originalTitle, overview, posterPath, backdropPath: String?
     let voteAverage: Double
     let releaseDate: String?
-    let backdropPath: String?
-    let genreIds: [Int]
+    let genreIds: [Int]?
 
     enum CodingKeys: String, CodingKey {
         case id

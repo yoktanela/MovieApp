@@ -10,6 +10,22 @@ import Alamofire
 
 public class APIService: NSObject {
     
+    struct APIErrorResponse: Decodable {
+        let errors: [String]
+    }
+
+    struct APIFailResponse: Decodable {
+        var statusCode: Int
+        var statusMessage: String
+        var success: Bool
+        
+        enum CodingKeys: String, CodingKey {
+            case statusCode = "status_code"
+            case statusMessage = "status_message"
+            case success
+        }
+    }
+    
     override init() {
         super.init()
     }
@@ -61,6 +77,37 @@ public class APIService: NSObject {
         AF.request(Router.getPerson(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
             self.parseAPIResponse(response: response) { (success, message, person: Person?) in
                 completion(success, message, person)
+            }
+        }
+    }
+    
+    func getSearchResults(searchText: String, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: [Movie]?, _ personList: [Person]?) -> Void) {
+        AF.request(Router.getSearchResults(searchText: searchText, language: Locale.preferredLanguages[0])).responseJSON { (response) in
+            self.parseAPIResponse(response: response) { (success, message, mediaResponse: MediaResponse?) in
+                var movies: [Movie]?
+                var persons: [Person]?
+                
+                mediaResponse?.results.forEach({ media in
+                    switch media {
+                    case .movie:
+                        if let movie = media.get() as? Movie {
+                            if movies == nil {
+                                movies = []
+                            }
+                            movies?.append(movie)
+                        }
+                    case .person:
+                        if let person = media.get() as? Person {
+                            if persons == nil {
+                                persons = []
+                            }
+                            persons?.append(person)
+                        }
+                    default:
+                        break
+                    }
+                })
+                completion(success, message, movies, persons)
             }
         }
     }

@@ -68,4 +68,55 @@ class MovieDBApiTests: XCTestCase {
             XCTAssertNotNil(errorResponse)
         }
     }
+    
+    func testGetSearchResultsWithExpectedResult() throws {
+        var movies: [Movie]?
+        var persons: [Person]?
+        let searchExpectation = expectation(description: "search")
+        
+        let apiService = APIService()
+        let searchText = "lotr"
+        apiService.getSearchResults(searchText: searchText, completion: { success, message, movieList, personList  in
+            movies = movieList
+            persons = personList
+            searchExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertTrue(movies != nil && persons != nil)
+        }
+    }
+    
+    func testGetSearchResultsWithTvResults() throws {
+        var movies: [Movie]?
+        var persons: [Person]?
+        let searchExpectation = expectation(description: "search")
+        
+        let apiService = APIService()
+        let searchText = "fargo"
+        apiService.getSearchResults(searchText: searchText, completion: { success, message, movieList, personList  in
+            movies = movieList
+            persons = personList
+            searchExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertTrue(movies != nil && persons != nil)
+        }
+    }
+    
+    func testGetSearchResultsWithErrorResult() throws {
+        var movies: [Movie]?
+        var persons: [Person]?
+        let searchExpectation = expectation(description: "search")
+        
+        let apiService = APIService()
+        let searchText = "asdmnks"
+        apiService.getSearchResults(searchText: searchText, completion: { success, message, movieList, personList  in
+            movies = movieList
+            persons = personList
+            searchExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertTrue(movies == nil && persons == nil)
+        }
+    }
 }

@@ -9,7 +9,7 @@ import Foundation
 
 struct Person: Decodable {
     let id: Int
-    let name: String
+    let name: String?
     let biography: String?
     let profilePath: String?
 
