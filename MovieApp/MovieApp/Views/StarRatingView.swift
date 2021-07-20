@@ -18,10 +18,17 @@ class StarRatingView: UIView {
         super.init(frame: frame)
         
         for i in 0..<starCount {
-            let starImageView = UIImageView(frame: CGRect(x: (25 + padding)*CGFloat(i) , y: 0, width: 25, height: 25))
+            let starImageView = UIImageView(frame: CGRect(x: (25 + padding)*CGFloat(i) ,y: 0, width: 25, height: 25))
             starImageView.image = UIImage(named: "star")
             starImageViews.append(starImageView)
             self.addSubview(starImageView)
+            if (i == 0 ) {
+                self.translatesAutoresizingMaskIntoConstraints = false
+                let top = self.topAnchor.constraint(equalTo: starImageView.topAnchor, constant: 0)
+                let bottom = self.bottomAnchor.constraint(equalTo: starImageView.bottomAnchor, constant: 0)
+                let start = self.trailingAnchor.constraint(equalTo: starImageView.trailingAnchor, constant: 0)
+                self.addConstraints([top, bottom, start])
+            }
         }
     }
     
