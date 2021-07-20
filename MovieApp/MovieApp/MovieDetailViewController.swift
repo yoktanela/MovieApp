@@ -51,6 +51,15 @@ class MovieDetailViewController: UIViewController {
         return textView
     }()
     
+    public let videosLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.init(netHex: 0x707070)
+        label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
+        label.textAlignment = .left
+        label.text = "Videos"
+        return label
+    }()
+    
     public let castLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.init(netHex: 0x707070)
@@ -60,6 +69,9 @@ class MovieDetailViewController: UIViewController {
         return label
     }()
     
+    var videoViewModel: VideoViewModel!
+    var videosCollectionView: UICollectionView!
+    private var videosDataSource: CollectionViewDataSource<VideoCollectionViewCell,Video>!
     var castCollectionView: UICollectionView!
     
     override func viewDidLoad() {
@@ -108,25 +120,85 @@ class MovieDetailViewController: UIViewController {
         self.view.addConstraints([overviewTextViewTop, overviewTextViewLeft, overviewTextViewRight])
         
         // overviewLabel constraints
+        self.view.addSubview(videosLabel)
+        videosLabel.translatesAutoresizingMaskIntoConstraints = false
+        let videosLabelTop = videosLabel.topAnchor.constraint(equalTo: overviewTextView.bottomAnchor, constant: 10)
+        let videosLabelLeft = videosLabel.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
+        let videosLabelRight = videosLabel.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 10)
+        self.view.addConstraints([videosLabelTop, videosLabelLeft, videosLabelRight])
+        
+        let videoslayout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
+        videoslayout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 10)
+        videoslayout.itemSize = CGSize(width: 90, height: 60)
+        videoslayout.scrollDirection = .horizontal
+        self.videosCollectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: videoslayout)
+        videosCollectionView.backgroundColor = UIColor.white
+        videosCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(videosCollectionView)
+        let videosTableViewTop = videosCollectionView.topAnchor.constraint(equalTo: videosLabel.bottomAnchor, constant: 10)
+        let videosTableViewLeft = videosCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
+        let videosTableViewRight = videosCollectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 0)
+        let videosTableViewHeight = videosCollectionView.heightAnchor.constraint(equalToConstant: CGFloat(70))
+        self.view.addConstraints([videosTableViewTop, videosTableViewLeft, videosTableViewRight, videosTableViewHeight])
+        videosCollectionView.register(VideoCollectionViewCell.self, forCellWithReuseIdentifier: "videoCell")
+        
+        // overviewLabel constraints
         self.view.addSubview(castLabel)
         castLabel.translatesAutoresizingMaskIntoConstraints = false
-        let castLabelTop = castLabel.topAnchor.constraint(equalTo: overviewTextView.bottomAnchor, constant: 10)
+        let castLabelTop = castLabel.topAnchor.constraint(equalTo: videosCollectionView.bottomAnchor, constant: 10)
         let castLabelLeft = castLabel.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
         let castLabelRight = castLabel.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 10)
         self.view.addConstraints([castLabelTop, castLabelLeft, castLabelRight])
         
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-               layout.sectionInset = UIEdgeInsets(top: 20, left: 10, bottom: 10, right: 10)
-        layout.itemSize = CGSize(width: 60, height: 60)
+               layout.sectionInset = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 10)
+        layout.itemSize = CGSize(width: 150, height: 55)
         self.castCollectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: layout)
+        layout.scrollDirection = .horizontal
         castCollectionView.backgroundColor = UIColor.white
         castCollectionView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(castCollectionView)
         let castTableViewTop = castCollectionView.topAnchor.constraint(equalTo: castLabel.bottomAnchor, constant: 10)
         let castTableViewBottom = castCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -20)
         let castTableViewLeft = castCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
-        let castTableViewRight = castCollectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 10)
+        let castTableViewRight = castCollectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 0)
         let castTableViewHeight = castCollectionView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.2)
         self.view.addConstraints([castTableViewTop, castTableViewBottom, castTableViewLeft, castTableViewRight, castTableViewHeight])
+        
+        callToViewModelForUIUpdate()
     }
+    
+    func callToViewModelForUIUpdate() {
+        self.videoViewModel = VideoViewModel(movieId: self.movie.id)
+        self.videoViewModel.bindVideoViewModelToController = {
+            self.updateDataSource()
+        }
+    }
+    
+    func updateDataSource(){
+        self.videosDataSource = CollectionViewDataSource(cellIdentifier: "videoCell", items: self.videoViewModel.videos, configureCell: { (cell, video) in
+            cell.setVideoKey(key: video.key ?? "")
+        })
+        
+        DispatchQueue.main.async {
+            self.videosCollectionView.dataSource = self.videosDataSource
+            self.videosCollectionView.reloadData()
+        }
+    }
+}
+
+extension MovieDetailViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return videoViewModel.videos.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let videoCell = collectionView.dequeueReusableCell(withReuseIdentifier: "videoCell", for: indexPath) as! VideoCollectionViewCell
+        let video = videoViewModel.videos[indexPath.row]
+        if let key = video.key {
+            videoCell.setVideoKey(key: key)
+        }
+        return videoCell
+    }
+
 }
