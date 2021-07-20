@@ -19,7 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } else {
             self.window = UIWindow()
             let navigationController = UINavigationController()
-            let mainView = ViewController(nibName: nil, bundle: nil)
+            let mainView = MainViewController(nibName: nil, bundle: nil)
             navigationController.viewControllers = [mainView]
             navigationController.navigationBar.isTranslucent = false
             self.window!.rootViewController = navigationController
