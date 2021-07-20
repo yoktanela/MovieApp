@@ -28,7 +28,7 @@ class MovieTableViewDataSource<CELL : UITableViewCell,T> : NSObject, UITableView
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
          let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier, for: indexPath) as! CELL
-        
+        cell.selectionStyle = .none
         let item = self.items[indexPath.row]
         self.configureCell(cell, item)
         return cell
