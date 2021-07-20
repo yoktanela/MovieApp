@@ -21,13 +21,14 @@ class MoviesViewModel: NSObject {
     
     override init() {
         super.init()
+        movies = []
         apiService = APIService()
         callFunctionToGetMovieData()
     }
     
     func callFunctionToGetMovieData(page: Int = 1) {
         apiService.getPopularMovies(page: page) { [weak self] success, message, list in
-            self?.movies = list
+            self?.movies.append(contentsOf: list ?? [])
         }
     }
 }

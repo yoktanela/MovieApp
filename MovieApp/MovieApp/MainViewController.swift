@@ -13,6 +13,7 @@ class MainViewController: UIViewController {
     var moviesTableView: UITableView!
     private var moviesViewModel: MoviesViewModel!
     private var dataSource : MovieTableViewDataSource<MovieTableViewCell,Movie>!
+    private var page: Int = 1
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,6 +23,7 @@ class MainViewController: UIViewController {
         self.view.addSubview(moviesTableView)
         let topConstraint = self.moviesTableView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 0)
         self.view.addConstraints([topConstraint])
+        moviesTableView.delegate = self
         moviesTableView.register(MovieTableViewCell.self, forCellReuseIdentifier: "MovieTableViewCell")
         
         createSearchBar()
@@ -69,6 +71,15 @@ class MainViewController: UIViewController {
         DispatchQueue.main.async {
             self.moviesTableView.dataSource = self.dataSource
             self.moviesTableView.reloadData()
+        }
+    }
+}
+
+extension MainViewController: UITableViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if (((scrollView.contentOffset.y + scrollView.frame.size.height) > scrollView.contentSize.height )){
+            page += 1
+            moviesViewModel.callFunctionToGetMovieData(page: page)
         }
     }
 }
