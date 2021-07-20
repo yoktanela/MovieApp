@@ -25,6 +25,8 @@ class MainViewController: UIViewController {
         self.view.addConstraints([topConstraint])
         moviesTableView.delegate = self
         moviesTableView.register(MovieTableViewCell.self, forCellReuseIdentifier: "MovieTableViewCell")
+        moviesTableView.separatorStyle = .none
+        moviesTableView.allowsSelection = false
         
         createSearchBar()
         callToViewModelForUIUpdate()
@@ -81,6 +83,12 @@ extension MainViewController: UITableViewDelegate {
             page += 1
             moviesViewModel.callFunctionToGetMovieData(page: page)
         }
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
+        headerView.setTitle(title: "Movies")
+        return headerView
     }
 }
 
