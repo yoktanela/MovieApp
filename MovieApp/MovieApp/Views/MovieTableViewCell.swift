@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import Kingfisher
 
 class MovieTableViewCell: UITableViewCell {
     
@@ -58,6 +59,10 @@ class MovieTableViewCell: UITableViewCell {
         didSet {
             titleLabel.text = movie?.originalTitle
             releaseDateLabel.text = movie?.releaseDate
+            if let posterPath = movie?.posterPath, let url = URL(string: Constants.imageBaseURL + posterPath) {
+                let resource = ImageResource(downloadURL: url)
+                posterImageView.kf.setImage(with: resource)
+            }
         }
     }
     
