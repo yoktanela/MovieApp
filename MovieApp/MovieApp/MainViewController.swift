@@ -11,6 +11,8 @@ class MainViewController: UIViewController {
 
     var searchController: UISearchController!
     var moviesTableView: UITableView!
+    private var moviesViewModel: MoviesViewModel!
+    private var dataSource : MovieTableViewDataSource<MovieTableViewCell,Movie>!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,8 +22,10 @@ class MainViewController: UIViewController {
         self.view.addSubview(moviesTableView)
         let topConstraint = self.moviesTableView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 0)
         self.view.addConstraints([topConstraint])
+        moviesTableView.register(MovieTableViewCell.self, forCellReuseIdentifier: "MovieTableViewCell")
         
         createSearchBar()
+        callToViewModelForUIUpdate()
     }
 
     func createSearchBar() {
@@ -47,6 +51,24 @@ class MainViewController: UIViewController {
             self.view.addConstraints([topConstraint])
         } else {
             // Fallback on earlier versions
+        }
+    }
+    
+    func callToViewModelForUIUpdate() {
+        self.moviesViewModel = MoviesViewModel()
+        self.moviesViewModel.bindMoviesViewModelToController = {
+            self.updateDataSource()
+        }
+    }
+    
+    func updateDataSource(){
+        self.dataSource = MovieTableViewDataSource(cellIdentifier: "MovieTableViewCell", items: self.moviesViewModel.movies, configureCell: { (cell, movie) in
+            cell.movie = movie
+        })
+        
+        DispatchQueue.main.async {
+            self.moviesTableView.dataSource = self.dataSource
+            self.moviesTableView.reloadData()
         }
     }
 }
