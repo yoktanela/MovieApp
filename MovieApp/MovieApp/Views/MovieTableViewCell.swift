@@ -55,6 +55,22 @@ class MovieTableViewCell: UITableViewCell {
         return lbl
     }()
     
+    public var starRatingView: StarRatingView = {
+        let view = StarRatingView(frame: CGRect(x: 0, y: 0, width: 100, height: 25))
+        view.backgroundColor = UIColor.red
+        return view
+    }()
+    
+    public let voteAvarageLabel : UILabel = {
+        let lbl = UILabel()
+        lbl.textColor = UIColor.init(netHex: 0x707070)
+        lbl.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        lbl.textAlignment = .left
+        lbl.numberOfLines = 0
+        lbl.text = "10.0"
+        return lbl
+    }()
+    
     var movie : Movie? {
         didSet {
             titleLabel.text = movie?.originalTitle
@@ -62,6 +78,10 @@ class MovieTableViewCell: UITableViewCell {
             if let posterPath = movie?.posterPath, let url = URL(string: Constants.imageBaseURL + posterPath) {
                 let resource = ImageResource(downloadURL: url)
                 posterImageView.kf.setImage(with: resource)
+            }
+            if let voteAvarage = movie?.voteAverage {
+                voteAvarageLabel.text = String(describing: voteAvarage)
+                starRatingView.setRate(rating: Float(voteAvarage)/2)
             }
         }
     }
@@ -110,6 +130,22 @@ class MovieTableViewCell: UITableViewCell {
         let releaseDateLabelLeftAnchor = releaseDateLabel.leftAnchor.constraint(equalTo: releaseLabel.rightAnchor, constant: 2)
         let releaseDateLabelRightAnchor = releaseDateLabel.rightAnchor.constraint(lessThanOrEqualTo: containerView.rightAnchor, constant: -5)
         containerView.addConstraints([releaseDateLabelTopAnchor, releaseDateLabelLeftAnchor, releaseDateLabelRightAnchor])
+        
+        // starRatingView constraints
+        containerView.addSubview(starRatingView)
+        starRatingView.translatesAutoresizingMaskIntoConstraints = false
+        let starRatingViewTopAnchor = starRatingView.topAnchor.constraint(greaterThanOrEqualTo: releaseLabel.bottomAnchor, constant: 15)
+        let starRatingViewLeftAnchor = starRatingView.leftAnchor.constraint(equalTo: releaseLabel.leftAnchor, constant: 0)
+        let starRatingViewRightAnchor = starRatingView.rightAnchor.constraint(lessThanOrEqualTo: containerView.rightAnchor, constant: -5)
+        containerView.addConstraints([starRatingViewTopAnchor, starRatingViewLeftAnchor, starRatingViewRightAnchor])
+        
+        // starRatingView constraints
+        containerView.addSubview(voteAvarageLabel)
+        voteAvarageLabel.translatesAutoresizingMaskIntoConstraints = false
+        let voteAvarageLabelTopAnchor = voteAvarageLabel.topAnchor.constraint(equalTo: starRatingView.topAnchor, constant: 0)
+        let voteAvarageLabelBottomAnchor = voteAvarageLabel.topAnchor.constraint(equalTo: starRatingView.bottomAnchor, constant: 0)
+        let voteAvarageLabelLeftAnchor = voteAvarageLabel.rightAnchor.constraint(equalTo: containerView.rightAnchor, constant: -10)
+        containerView.addConstraints([voteAvarageLabelTopAnchor, voteAvarageLabelBottomAnchor, voteAvarageLabelLeftAnchor])
     }
     
     required init?(coder: NSCoder) {
