@@ -135,6 +135,7 @@ class MovieDetailViewController: UIViewController {
         videosCollectionView.backgroundColor = UIColor.white
         videosCollectionView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(videosCollectionView)
+        videosCollectionView.delegate = self
         let videosTableViewTop = videosCollectionView.topAnchor.constraint(equalTo: videosLabel.bottomAnchor, constant: 10)
         let videosTableViewLeft = videosCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
         let videosTableViewRight = videosCollectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 0)
@@ -187,18 +188,18 @@ class MovieDetailViewController: UIViewController {
     }
 }
 
-extension MovieDetailViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return videoViewModel.videos.count
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let videoCell = collectionView.dequeueReusableCell(withReuseIdentifier: "videoCell", for: indexPath) as! VideoCollectionViewCell
-        let video = videoViewModel.videos[indexPath.row]
-        if let key = video.key {
-            videoCell.setVideoKey(key: key)
+extension MovieDetailViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if indexPath.row < videoViewModel.videos.count {
+            let video = videoViewModel.videos[indexPath.row]
+            guard let videoKey = video.key else {
+                return
+            }
+            var playerVC = VideoPlayerViewController()
+            playerVC.videoKey = videoKey
+            self.navigationController?.present(playerVC, animated: true, completion: {
+                
+            })
         }
-        return videoCell
     }
-
 }
