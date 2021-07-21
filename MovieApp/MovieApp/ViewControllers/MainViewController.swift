@@ -132,6 +132,7 @@ extension MainViewController: UITableViewDelegate {
 
 extension MainViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        tableView.subviews.filter({$0.isKind(of: NoResultView.self)}).forEach({$0.removeFromSuperview()})
         if (moviesViewModel.moviesSearchResult != nil) {
             if (section == 0) {
                 return moviesViewModel.moviesSearchResult?.count ?? 0
@@ -140,6 +141,10 @@ extension MainViewController: UITableViewDataSource {
             }
         } else if (moviesViewModel.peopleSearchResult != nil) {
             return moviesViewModel.peopleSearchResult?.count ?? 0
+        }
+        if searchMode {
+            tableView.addSubview(NoResultView(frame: tableView.frame))
+            return 0
         }
         return moviesViewModel.movies.count
     }
@@ -206,6 +211,7 @@ extension MainViewController: UISearchBarDelegate {
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         moviesViewModel.clearSearchResults()
+        searchMode = false
     }
 }
 
