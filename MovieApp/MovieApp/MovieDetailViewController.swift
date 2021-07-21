@@ -20,7 +20,7 @@ class MovieDetailViewController: UIViewController {
     }()
     
     public var starRatingView: StarRatingView = {
-        let view = StarRatingView(frame: CGRect.zero)
+        let view = StarRatingView(frame: CGRect(x: 0, y: 0, width: 100, height: 25))
         return view
     }()
     
@@ -97,11 +97,20 @@ class MovieDetailViewController: UIViewController {
         // starRatingView contraints
         self.view.addSubview(starRatingView)
         starRatingView.translatesAutoresizingMaskIntoConstraints = false
-        starRatingView.setRate(rating: Float(movie.voteAverage))
+        starRatingView.setRate(rating: Float(movie.voteAverage/2))
         let starRatingViewTop = starRatingView.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 35)
         let starRatingViewLeft = starRatingView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
         let starRatingViewRight = starRatingView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 10)
         self.view.addConstraints([starRatingViewTop, starRatingViewLeft, starRatingViewRight])
+        
+        self.view.addSubview(voteAvarageLabel)
+        voteAvarageLabel.text = String(describing: movie.voteAverage)
+        voteAvarageLabel.translatesAutoresizingMaskIntoConstraints = false
+        let voteAvarageLabelTopAnchor = voteAvarageLabel.topAnchor.constraint(equalTo: starRatingView.topAnchor, constant: 0)
+        let voteAvarageLabelBottomAnchor = voteAvarageLabel.bottomAnchor.constraint(equalTo: starRatingView.bottomAnchor, constant: 0)
+        let voteAvarageLabelRightAnchor = voteAvarageLabel.rightAnchor.constraint(lessThanOrEqualTo: self.view.rightAnchor, constant: -16)
+        let voteAvarageLabelLeftAnchor = voteAvarageLabel.leftAnchor.constraint(equalTo: self.starRatingView.rightAnchor, constant: 10)
+        self.view.addConstraints([voteAvarageLabelTopAnchor, voteAvarageLabelBottomAnchor, voteAvarageLabelRightAnchor, voteAvarageLabelLeftAnchor])
         
         // overviewLabel constraints
         self.view.addSubview(overviewLabel)
