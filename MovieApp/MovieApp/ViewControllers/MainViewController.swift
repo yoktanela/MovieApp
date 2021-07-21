@@ -14,6 +14,7 @@ class MainViewController: UIViewController {
     private var moviesViewModel: MoviesViewModel!
     private var dataSource : MovieTableViewDataSource<MovieTableViewCell,Movie>!
     private var page: Int = 1
+    private var searchMode = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -62,15 +63,19 @@ class MainViewController: UIViewController {
         self.moviesViewModel.bindMoviesViewModelToController = {
             self.updateDataSource()
         }
+        
+        self.moviesViewModel.bindMoviesSearchResultsViewModelToController = {
+            self.updateDataSource()
+        }
+        
+        self.moviesViewModel.bindPeopleSearchResultsViewModelToController = {
+            self.updateDataSource()
+        }
     }
     
     func updateDataSource(){
-        self.dataSource = MovieTableViewDataSource(cellIdentifier: "MovieTableViewCell", items: self.moviesViewModel.movies, configureCell: { (cell, movie) in
-            cell.movie = movie
-        })
-        
         DispatchQueue.main.async {
-            self.moviesTableView.dataSource = self.dataSource
+            self.moviesTableView.dataSource = self
             self.moviesTableView.reloadData()
         }
     }
@@ -85,8 +90,16 @@ extension MainViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        var headerTitle = "Movies"
+        if (moviesViewModel.moviesSearchResult != nil && section == 0) {
+            if (section != 0) {
+                headerTitle = "People"
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            headerTitle = "People"
+        }
         let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
-        headerView.setTitle(title: "Movies")
+        headerView.setTitle(title: headerTitle)
         return headerView
     }
     
@@ -100,7 +113,66 @@ extension MainViewController: UITableViewDelegate {
     }
 }
 
-extension MainViewController: UISearchBarDelegate {
+extension MainViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if (moviesViewModel.moviesSearchResult != nil) {
+            if (section == 0) {
+                return moviesViewModel.moviesSearchResult?.count ?? 0
+            } else if moviesViewModel.peopleSearchResult != nil {
+                return moviesViewModel.peopleSearchResult?.count ?? 0
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            return moviesViewModel.peopleSearchResult?.count ?? 0
+        }
+        return moviesViewModel.movies.count
+    }
     
+    func numberOfSections(in tableView: UITableView) -> Int {
+        var sectionNumber = 0
+        if (moviesViewModel.moviesSearchResult != nil) {
+            sectionNumber += 1
+        }
+        if (moviesViewModel.peopleSearchResult != nil) {
+            sectionNumber += 1
+        }
+        return sectionNumber == 0 ? 1 : sectionNumber
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if (moviesViewModel.moviesSearchResult != nil ) {
+            if (indexPath.section == 0) {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
+                cell.selectionStyle = .none
+                let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
+                cell.movie = movie
+                return cell
+            } else {
+                let cell = UITableViewCell(style: UITableViewCell.CellStyle.value1, reuseIdentifier: "Cell")
+                cell.selectionStyle = .none
+                let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
+                cell.textLabel?.text = person?.name
+                return cell
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            let cell = UITableViewCell(style: UITableViewCell.CellStyle.value1, reuseIdentifier: "Cell")
+            cell.selectionStyle = .none
+            let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
+            cell.textLabel?.text = person?.name
+            return cell
+        }
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
+        cell.selectionStyle = .none
+        let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row] 
+        cell.movie = movie
+        return cell
+    }
+}
+
+extension MainViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        searchMode = true
+        moviesViewModel.callFuntionToGetSearchResults(searchText: searchText)
+    }
 }
 
