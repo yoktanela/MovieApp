@@ -26,7 +26,6 @@ class MainViewController: UIViewController {
         moviesTableView.delegate = self
         moviesTableView.register(MovieTableViewCell.self, forCellReuseIdentifier: "MovieTableViewCell")
         moviesTableView.separatorStyle = .none
-        moviesTableView.allowsSelection = false
         
         createSearchBar()
         callToViewModelForUIUpdate()
@@ -89,6 +88,15 @@ extension MainViewController: UITableViewDelegate {
         let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
         headerView.setTitle(title: "Movies")
         return headerView
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if (moviesViewModel.movies.count > indexPath.row) {
+            let movie = moviesViewModel.movies[indexPath.row]
+            let movieDetailViewController = MovieDetailViewController()
+            movieDetailViewController.movieId = movie.id
+            self.navigationController?.pushViewController(movieDetailViewController, animated: true)
+        }
     }
 }
 

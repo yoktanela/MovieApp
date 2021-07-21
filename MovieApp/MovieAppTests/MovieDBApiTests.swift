@@ -40,6 +40,37 @@ class MovieDBApiTests: XCTestCase {
         }
     }
     
+    // MARK: Tests for getMovie
+    func testGetMovieWithExpectedResult() throws {
+        var movieResponse: Movie?
+        let movieExpectation = expectation(description: "movie")
+        
+        let apiService = APIService()
+        let movieId = 121
+        apiService.getMovie(id: movieId, completion: { success, message, movieData in
+            movieResponse = movieData
+            movieExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(movieResponse)
+        }
+    }
+    
+    func testGetMovieWithErrorResult() throws {
+        let movieExpectation = expectation(description: "movie")
+        var errorResponse: String?
+        
+        let apiService = APIService()
+        let movieId = 100000
+        apiService.getMovie(id: movieId, completion: { success, message, movie in
+            errorResponse = message
+            movieExpectation.fulfill()
+        })
+        waitForExpectations(timeout: 1) { (error) in
+            XCTAssertNotNil(errorResponse)
+        }
+    }
+    
     // MARK: Tests for getPerson
     func testGetPersonWithExpectedResult() throws {
         var personResponse: Person?
