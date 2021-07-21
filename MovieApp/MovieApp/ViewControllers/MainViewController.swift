@@ -26,6 +26,7 @@ class MainViewController: UIViewController {
         self.view.addConstraints([topConstraint])
         moviesTableView.delegate = self
         moviesTableView.register(MovieTableViewCell.self, forCellReuseIdentifier: "MovieTableViewCell")
+        moviesTableView.register(PersonTableViewCell.self, forCellReuseIdentifier: "PersonTableViewCell")
         moviesTableView.separatorStyle = .none
         
         createSearchBar()
@@ -147,17 +148,19 @@ extension MainViewController: UITableViewDataSource {
                 cell.movie = movie
                 return cell
             } else {
-                let cell = UITableViewCell(style: UITableViewCell.CellStyle.value1, reuseIdentifier: "Cell")
+                let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
                 cell.selectionStyle = .none
                 let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
-                cell.textLabel?.text = person?.name
+                cell.nameLabel.text = person?.name
+                cell.setProfileImage(path: person?.profilePath)
                 return cell
             }
         } else if (moviesViewModel.peopleSearchResult != nil) {
-            let cell = UITableViewCell(style: UITableViewCell.CellStyle.value1, reuseIdentifier: "Cell")
+            let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
             cell.selectionStyle = .none
             let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
-            cell.textLabel?.text = person?.name
+            cell.nameLabel.text = person?.name
+            cell.setProfileImage(path: person?.profilePath)
             return cell
         }
         
