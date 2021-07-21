@@ -14,6 +14,7 @@ class MainViewController: UIViewController {
     private var moviesViewModel: MoviesViewModel!
     private var dataSource : MovieTableViewDataSource<MovieTableViewCell,Movie>!
     private var page: Int = 1
+    private var searchMode = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +26,7 @@ class MainViewController: UIViewController {
         self.view.addConstraints([topConstraint])
         moviesTableView.delegate = self
         moviesTableView.register(MovieTableViewCell.self, forCellReuseIdentifier: "MovieTableViewCell")
+        moviesTableView.register(PersonTableViewCell.self, forCellReuseIdentifier: "PersonTableViewCell")
         moviesTableView.separatorStyle = .none
         
         createSearchBar()
@@ -62,15 +64,19 @@ class MainViewController: UIViewController {
         self.moviesViewModel.bindMoviesViewModelToController = {
             self.updateDataSource()
         }
+        
+        self.moviesViewModel.bindMoviesSearchResultsViewModelToController = {
+            self.updateDataSource()
+        }
+        
+        self.moviesViewModel.bindPeopleSearchResultsViewModelToController = {
+            self.updateDataSource()
+        }
     }
     
     func updateDataSource(){
-        self.dataSource = MovieTableViewDataSource(cellIdentifier: "MovieTableViewCell", items: self.moviesViewModel.movies, configureCell: { (cell, movie) in
-            cell.movie = movie
-        })
-        
         DispatchQueue.main.async {
-            self.moviesTableView.dataSource = self.dataSource
+            self.moviesTableView.dataSource = self
             self.moviesTableView.reloadData()
         }
     }
@@ -85,22 +91,127 @@ extension MainViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        var headerTitle = "Movies"
+        if (moviesViewModel.moviesSearchResult != nil && section == 0) {
+            if (section != 0) {
+                headerTitle = "People"
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            headerTitle = "People"
+        }
         let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
-        headerView.setTitle(title: "Movies")
+        headerView.setTitle(title: headerTitle)
         return headerView
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if (moviesViewModel.movies.count > indexPath.row) {
-            let movie = moviesViewModel.movies[indexPath.row]
+        var selectedObject: Any?
+        if (moviesViewModel.moviesSearchResult != nil) {
+            if (indexPath.section == 0) {
+                selectedObject = moviesViewModel.moviesSearchResult?[indexPath.row] as Any
+            } else if moviesViewModel.peopleSearchResult != nil {
+                selectedObject = moviesViewModel.peopleSearchResult?[indexPath.row] as Any
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            selectedObject = moviesViewModel.peopleSearchResult?[indexPath.row] as Any
+        } else {
+            selectedObject = moviesViewModel.movies[indexPath.row]
+        }
+        
+        if let selectedObject = selectedObject, let movie = selectedObject as? Movie {
             let movieDetailViewController = MovieDetailViewController()
             movieDetailViewController.movieId = movie.id
             self.navigationController?.pushViewController(movieDetailViewController, animated: true)
+        } else if let selectedObject = selectedObject, let person = selectedObject as? Person {
+            let personDetailViewController = PersonDetailViewController()
+            personDetailViewController.personId = person.id
+            self.navigationController?.pushViewController(personDetailViewController, animated: true)
         }
     }
 }
 
-extension MainViewController: UISearchBarDelegate {
+extension MainViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        tableView.subviews.filter({$0.isKind(of: NoResultView.self)}).forEach({$0.removeFromSuperview()})
+        if (moviesViewModel.moviesSearchResult != nil) {
+            if (section == 0) {
+                return moviesViewModel.moviesSearchResult?.count ?? 0
+            } else if moviesViewModel.peopleSearchResult != nil {
+                return moviesViewModel.peopleSearchResult?.count ?? 0
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            return moviesViewModel.peopleSearchResult?.count ?? 0
+        }
+        if searchMode {
+            tableView.addSubview(NoResultView(frame: tableView.frame))
+            return 0
+        }
+        return moviesViewModel.movies.count
+    }
     
+    func numberOfSections(in tableView: UITableView) -> Int {
+        var sectionNumber = 0
+        if (moviesViewModel.moviesSearchResult != nil) {
+            sectionNumber += 1
+        }
+        if (moviesViewModel.peopleSearchResult != nil) {
+            sectionNumber += 1
+        }
+        return sectionNumber == 0 ? 1 : sectionNumber
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if (moviesViewModel.moviesSearchResult != nil ) {
+            if (indexPath.section == 0) {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
+                cell.selectionStyle = .none
+                let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
+                cell.setTitle(text: movie.originalTitle ?? "")
+                cell.setReleaseDate(text: movie.releaseDate ?? "")
+                if let posterPath = movie.posterPath {
+                    cell.setPosterPath(text: posterPath)
+                }
+                cell.setVoteAvarage(rate: movie.voteAverage)
+                return cell
+            } else {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
+                cell.selectionStyle = .none
+                let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
+                cell.nameLabel.text = person?.name
+                cell.setProfileImage(path: person?.profilePath)
+                return cell
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
+            cell.selectionStyle = .none
+            let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
+            cell.nameLabel.text = person?.name
+            cell.setProfileImage(path: person?.profilePath)
+            return cell
+        }
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
+        cell.selectionStyle = .none
+        let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
+        cell.setTitle(text: movie.originalTitle ?? "")
+        cell.setReleaseDate(text: movie.releaseDate ?? "")
+        if let posterPath = movie.posterPath {
+            cell.setPosterPath(text: posterPath)
+        }
+        cell.setVoteAvarage(rate: movie.voteAverage)
+        return cell
+    }
+}
+
+extension MainViewController: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        searchMode = true
+        moviesViewModel.callFuntionToGetSearchResults(searchText: searchText)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        moviesViewModel.clearSearchResults()
+        searchMode = false
+    }
 }
 

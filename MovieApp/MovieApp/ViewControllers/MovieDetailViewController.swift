@@ -16,6 +16,7 @@ class MovieDetailViewController: UIViewController {
     var coverImageView: UIImageView = {
         let imageview = UIImageView()
         imageview.contentMode = .scaleAspectFill
+        imageview.image = UIImage(named: "movie_placeholder")
         return imageview
     }()
     
