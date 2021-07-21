@@ -24,6 +24,7 @@ class MovieTableViewCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.contentMode = UIView.ContentMode.scaleAspectFill
         imageView.clipsToBounds = true
+        imageView.image = UIImage(named: "movie_placeholder")
         return imageView
     }()
     
