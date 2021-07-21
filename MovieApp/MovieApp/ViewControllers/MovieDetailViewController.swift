@@ -40,7 +40,7 @@ class MovieDetailViewController: UIViewController {
         label.textColor = UIColor.init(netHex: 0x707070)
         label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         label.textAlignment = .left
-        label.text = "Overview"
+        label.text = "overview".localized
         return label
     }()
     
@@ -57,7 +57,7 @@ class MovieDetailViewController: UIViewController {
         label.textColor = UIColor.init(netHex: 0x707070)
         label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         label.textAlignment = .left
-        label.text = "Videos"
+        label.text = "videos".localized
         return label
     }()
     
@@ -66,7 +66,7 @@ class MovieDetailViewController: UIViewController {
         label.textColor = UIColor.init(netHex: 0x707070)
         label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         label.textAlignment = .left
-        label.text = "Cast"
+        label.text = "cast".localized
         return label
     }()
     

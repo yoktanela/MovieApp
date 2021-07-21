@@ -91,13 +91,13 @@ extension MainViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        var headerTitle = "Movies"
+        var headerTitle = "movies".localized
         if (moviesViewModel.moviesSearchResult != nil && section == 0) {
             if (section != 0) {
-                headerTitle = "People"
+                headerTitle = "people".localized
             }
         } else if (moviesViewModel.peopleSearchResult != nil) {
-            headerTitle = "People"
+            headerTitle = "people".localized
         }
         let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
         headerView.setTitle(title: headerTitle)

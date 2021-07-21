@@ -26,7 +26,7 @@ class PersonDetailViewController: UIViewController {
         label.textColor = UIColor.init(netHex: 0x707070)
         label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         label.textAlignment = .left
-        label.text = "Biography"
+        label.text = "biography".localized
         return label
     }()
     
@@ -43,7 +43,7 @@ class PersonDetailViewController: UIViewController {
         label.textColor = UIColor.init(netHex: 0x707070)
         label.font = UIFont.systemFont(ofSize: 20, weight: .bold)
         label.textAlignment = .left
-        label.text = "Movie Credits"
+        label.text = "movie_credits".localized
         return label
     }()
     

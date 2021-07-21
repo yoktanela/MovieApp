@@ -16,7 +16,7 @@ class NoResultView: UIView {
         lbl.font = UIFont.systemFont(ofSize: 16, weight: .bold)
         lbl.textAlignment = .left
         lbl.numberOfLines = 0
-        lbl.text = "No Results to show."
+        lbl.text = "no_result".localized
         return lbl
     }()
     

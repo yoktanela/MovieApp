@@ -1,0 +1,17 @@
+/* 
+  Localizable.strings
+  MovieApp
+
+  Created by Elanur Yoktan on 21.07.2021.
+  
+*/
+
+"movies" = "Filmler";
+"people" = "İnsanlar";
+"overview" = "Genel Bakış";
+"videos" = "Videolar";
+"cast" = "Oyuncular";
+"biography" = "Biyografi";
+"movie_credits" = "Oynadığı Filmler";
+"no_result" = "Gösterilecek sonuç yok.";
+"close" = "Kapat";

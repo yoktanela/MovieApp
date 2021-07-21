@@ -18,7 +18,7 @@ class VideoPlayerViewController: UIViewController {
     
     private var closeButton: UIButton = {
         let button = UIButton()
-        button.setTitle("Close", for: .normal)
+        button.setTitle("close".localized, for: .normal)
         return button
     }()
     

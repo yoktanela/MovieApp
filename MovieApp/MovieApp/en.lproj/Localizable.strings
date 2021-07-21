@@ -1,0 +1,17 @@
+/* 
+  Localizable.strings
+  MovieApp
+
+  Created by Elanur Yoktan on 21.07.2021.
+  
+*/
+
+"movies" = "Movies";
+"people" = "People";
+"overview" = "Overview";
+"videos" = "Videos";
+"cast" = "Cast";
+"biography" = "Biography";
+"movie_credits" = "Movie Credits";
+"no_result" = "No Results to show.";
+"close" = "Close";
