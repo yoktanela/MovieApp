@@ -11,7 +11,7 @@ import Kingfisher
 
 class MovieDetailViewController: UIViewController {
 
-    var movie: Movie!
+    var movieId: Int!
     
     var coverImageView: UIImageView = {
         let imageview = UIImageView()
@@ -69,25 +69,19 @@ class MovieDetailViewController: UIViewController {
         return label
     }()
     
-    private var videoViewModel: VideoViewModel!
     private var videosCollectionView: UICollectionView!
     private var videosDataSource: CollectionViewDataSource<VideoCollectionViewCell,Video>!
-    private var castViewModel: CastViewModel!
     private var castCollectionView: UICollectionView!
     private var castDataSource: CollectionViewDataSource<CastMemberCollectionViewCell,CastMember>!
+    private var movieViewModel: MovieViewModel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.white
-        self.navigationItem.title = movie.originalTitle
         
         // coverImageView constraints
         self.view.addSubview(coverImageView)
         coverImageView.translatesAutoresizingMaskIntoConstraints = false
-        if let backdropPath = movie.backdropPath, let url = URL(string: Constants.imageBaseURL + backdropPath) {
-            let resource = ImageResource(downloadURL: url)
-            coverImageView.kf.setImage(with: resource)
-        }
         let imgViewTop = coverImageView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 0)
         let imgViewLeft = coverImageView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 0)
         let imgViewRight = coverImageView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 0)
@@ -97,14 +91,12 @@ class MovieDetailViewController: UIViewController {
         // starRatingView contraints
         self.view.addSubview(starRatingView)
         starRatingView.translatesAutoresizingMaskIntoConstraints = false
-        starRatingView.setRate(rating: Float(movie.voteAverage/2))
         let starRatingViewTop = starRatingView.topAnchor.constraint(equalTo: coverImageView.bottomAnchor, constant: 35)
         let starRatingViewLeft = starRatingView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
         let starRatingViewRight = starRatingView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 10)
         self.view.addConstraints([starRatingViewTop, starRatingViewLeft, starRatingViewRight])
         
         self.view.addSubview(voteAvarageLabel)
-        voteAvarageLabel.text = String(describing: movie.voteAverage)
         voteAvarageLabel.translatesAutoresizingMaskIntoConstraints = false
         let voteAvarageLabelTopAnchor = voteAvarageLabel.topAnchor.constraint(equalTo: starRatingView.topAnchor, constant: 0)
         let voteAvarageLabelBottomAnchor = voteAvarageLabel.bottomAnchor.constraint(equalTo: starRatingView.bottomAnchor, constant: 0)
@@ -122,7 +114,6 @@ class MovieDetailViewController: UIViewController {
         
         // overviewTextView constraints
         self.view.addSubview(overviewTextView)
-        overviewTextView.text = movie.overview
         overviewTextView.translatesAutoresizingMaskIntoConstraints = false
         let overviewTextViewTop = overviewTextView.topAnchor.constraint(equalTo: overviewLabel.bottomAnchor, constant: 5)
         let overviewTextViewLeft = overviewTextView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 16)
@@ -170,6 +161,7 @@ class MovieDetailViewController: UIViewController {
         castCollectionView.backgroundColor = UIColor.white
         castCollectionView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(castCollectionView)
+        self.castCollectionView.delegate = self
         let castTableViewTop = castCollectionView.topAnchor.constraint(equalTo: castLabel.bottomAnchor, constant: 10)
         let castTableViewBottom = castCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -20)
         let castTableViewLeft = castCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
@@ -178,23 +170,46 @@ class MovieDetailViewController: UIViewController {
         self.view.addConstraints([castTableViewTop, castTableViewBottom, castTableViewLeft, castTableViewRight, castTableViewHeight])
         castCollectionView.register(CastMemberCollectionViewCell.self, forCellWithReuseIdentifier: "castMemberCell")
         
+        self.movieViewModel = MovieViewModel(movieId: movieId)
         callToViewModelForUIUpdate()
     }
     
     func callToViewModelForUIUpdate() {
-        self.videoViewModel = VideoViewModel(movieId: self.movie.id)
-        self.videoViewModel.bindVideoViewModelToController = {
-            self.updateDataSource()
+        movieViewModel.originalTitle.bind {  [weak self] title in
+            self?.navigationItem.title = title
         }
         
-        self.castViewModel = CastViewModel(movieId: self.movie.id)
-        self.castViewModel.bindCastViewModelToController = {
-            self.updateDataForCastSource()
+        movieViewModel.backdropPath.bind { [weak self] backdropPath in
+            if let backdropPath = backdropPath, let url = URL(string: Constants.imageBaseURL + backdropPath) {
+                let resource = ImageResource(downloadURL: url)
+                self?.coverImageView.kf.setImage(with: resource)
+            }
+        }
+        
+        movieViewModel.voteAverage.bind { [weak self] average in
+            if let average = average {
+                self?.starRatingView.setRate(rating: Float(average/2))
+                self?.voteAvarageLabel.text = String(describing: average)
+            }
+        }
+        
+        movieViewModel.overview.bind { [weak self] overview in
+            if let overview = overview {
+                self?.overviewTextView.text = overview
+            }
+        }
+        
+        movieViewModel.videos.bind { videos in
+            self.updateDataSource(videos: videos ?? [])
+        }
+        
+        movieViewModel.cast.bind { cast in
+            self.updateDataForCastSource(cast: cast ?? [])
         }
     }
     
-    func updateDataSource(){
-        self.videosDataSource = CollectionViewDataSource(cellIdentifier: "videoCell", items: self.videoViewModel.videos, configureCell: { (cell, video) in
+    func updateDataSource(videos: [Video]){
+        self.videosDataSource = CollectionViewDataSource(cellIdentifier: "videoCell", items: videos, configureCell: { (cell, video) in
             cell.setVideoKey(key: video.key ?? "")
         })
         
@@ -204,8 +219,8 @@ class MovieDetailViewController: UIViewController {
         }
     }
     
-    func updateDataForCastSource(){
-        self.castDataSource = CollectionViewDataSource(cellIdentifier: "castMemberCell", items: self.castViewModel.cast, configureCell: { (cell, castMember) in
+    func updateDataForCastSource(cast: [CastMember]){
+        self.castDataSource = CollectionViewDataSource(cellIdentifier: "castMemberCell", items: cast, configureCell: { (cell, castMember) in
             cell.nameLabel.text = castMember.name
             cell.roleLabel.text = castMember.character
         })
@@ -219,16 +234,30 @@ class MovieDetailViewController: UIViewController {
 
 extension MovieDetailViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if indexPath.row < videoViewModel.videos.count {
-            let video = videoViewModel.videos[indexPath.row]
-            guard let videoKey = video.key else {
-                return
+        if collectionView == videosCollectionView {
+            let videos = movieViewModel.videos.value
+            if indexPath.row < videos?.count ?? 0 {
+                let video = videos?[indexPath.row]
+                guard let videoKey = video?.key else {
+                    return
+                }
+                let playerVC = VideoPlayerViewController()
+                playerVC.videoKey = videoKey
+                self.navigationController?.present(playerVC, animated: true, completion: {
+                    
+                })
             }
-            var playerVC = VideoPlayerViewController()
-            playerVC.videoKey = videoKey
-            self.navigationController?.present(playerVC, animated: true, completion: {
-                
-            })
+        } else if collectionView == castCollectionView {
+            let cast = movieViewModel.cast.value
+            if indexPath.row < cast?.count ?? 0 {
+                let castMember = cast?[indexPath.row]
+                guard let personId = castMember?.id else {
+                    return
+                }
+                let personVC = PersonDetailViewController()
+                personVC.personId = personId
+                self.navigationController?.pushViewController(personVC, animated: true)
+            }
         }
     }
 }

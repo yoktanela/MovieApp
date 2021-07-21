@@ -94,7 +94,7 @@ extension MainViewController: UITableViewDelegate {
         if (moviesViewModel.movies.count > indexPath.row) {
             let movie = moviesViewModel.movies[indexPath.row]
             let movieDetailViewController = MovieDetailViewController()
-            movieDetailViewController.movie = movie
+            movieDetailViewController.movieId = movie.id
             self.navigationController?.pushViewController(movieDetailViewController, animated: true)
         }
     }
