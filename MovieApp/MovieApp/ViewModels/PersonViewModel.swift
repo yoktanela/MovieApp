@@ -58,4 +58,3 @@ final class Box<T> {
     listener?(value)
   }
 }
-

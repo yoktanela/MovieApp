@@ -139,15 +139,15 @@ class PersonDetailViewController: UIViewController {
 
 extension PersonDetailViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        var movies = personViewModel.movieCredits.value
+        let movies = personViewModel.movieCredits.value
         if indexPath.row < movies?.count ?? 0 {
             let movie = movies?[indexPath.row]
             guard let movieId = movie?.id else {
                 return
             }
-            var movieDetailVC = MovieDetailViewController()
-            // TODO: there is only id for movie we need getmovie api
-            
+            let movieDetailVC = MovieDetailViewController()
+            movieDetailVC.movieId = movieId
+            self.navigationController?.pushViewController(movieDetailVC, animated: true)
         }
     }
 }
