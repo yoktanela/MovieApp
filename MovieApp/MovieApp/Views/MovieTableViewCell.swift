@@ -70,21 +70,6 @@ class MovieTableViewCell: UITableViewCell {
         return lbl
     }()
     
-    var movie : Movie? {
-        didSet {
-            titleLabel.text = movie?.originalTitle
-            releaseDateLabel.text = movie?.releaseDate
-            if let posterPath = movie?.posterPath, let url = URL(string: Constants.imageBaseURL + posterPath) {
-                let resource = ImageResource(downloadURL: url)
-                posterImageView.kf.setImage(with: resource)
-            }
-            if let voteAvarage = movie?.voteAverage {
-                voteAvarageLabel.text = String(describing: voteAvarage)
-                starRatingView.setRate(rating: Float(voteAvarage)/2)
-            }
-        }
-    }
-    
     public override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         
@@ -152,5 +137,24 @@ class MovieTableViewCell: UITableViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
+    func setTitle(text: String) {
+        titleLabel.text = text
+    }
+    
+    func setReleaseDate(text: String) {
+        releaseLabel.text = text
+    }
+    
+    func setPosterPath(text: String) {
+        if let url = URL(string: Constants.imageBaseURL + text) {
+            let resource = ImageResource(downloadURL: url)
+            posterImageView.kf.setImage(with: resource)
+        }
+    }
+    
+    func setVoteAvarage(rate: Double) {
+        voteAvarageLabel.text = String(describing: rate)
+        starRatingView.setRate(rating: Float(rate)/2)
+    }
 }

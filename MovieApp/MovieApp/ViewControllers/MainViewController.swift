@@ -145,7 +145,12 @@ extension MainViewController: UITableViewDataSource {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
                 cell.selectionStyle = .none
                 let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
-                cell.movie = movie
+                cell.setTitle(text: movie.originalTitle ?? "")
+                cell.setReleaseDate(text: movie.releaseDate ?? "")
+                if let posterPath = movie.posterPath {
+                    cell.setPosterPath(text: posterPath)
+                }
+                cell.setVoteAvarage(rate: movie.voteAverage)
                 return cell
             } else {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
@@ -167,7 +172,12 @@ extension MainViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
         cell.selectionStyle = .none
         let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row] 
-        cell.movie = movie
+        cell.setTitle(text: movie.originalTitle ?? "")
+        cell.setReleaseDate(text: movie.releaseDate ?? "")
+        if let posterPath = movie.posterPath {
+            cell.setPosterPath(text: posterPath)
+        }
+        cell.setVoteAvarage(rate: movie.voteAverage)
         return cell
     }
 }
