@@ -69,7 +69,8 @@ internal enum Router: URLRequestConvertible {
             if let relativePath = relativePath {
                 url.appendPathComponent(relativePath)
                 query += "&api_key=\(Constants.apiKey)"
-                url = URL(string: url.absoluteString + query)!
+                let urlString = (url.absoluteString + query).addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? (url.absoluteString + query)
+                url = URL(string: urlString)!
             }
             
             return url

@@ -17,6 +17,7 @@ class PersonDetailViewController: UIViewController {
     var profileImageView: UIImageView = {
         let imageview = UIImageView()
         imageview.contentMode = .scaleAspectFill
+        imageview.image = UIImage(named: "person_placeholder")
         return imageview
     }()
     

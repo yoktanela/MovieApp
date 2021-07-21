@@ -17,7 +17,21 @@ class MoviesViewModel: NSObject {
         }
     }
     
+    private(set) var moviesSearchResult : [Movie]? {
+        didSet {
+            self.bindMoviesSearchResultsViewModelToController()
+        }
+    }
+    
+    private(set) var peopleSearchResult : [Person]? {
+        didSet {
+            self.bindPeopleSearchResultsViewModelToController()
+        }
+    }
+    
     var bindMoviesViewModelToController : (() -> ()) = {}
+    var bindMoviesSearchResultsViewModelToController : (() -> ()) = {}
+    var bindPeopleSearchResultsViewModelToController : (() -> ()) = {}
     
     override init() {
         super.init()
@@ -30,5 +44,17 @@ class MoviesViewModel: NSObject {
         apiService.getPopularMovies(page: page) { [weak self] success, message, list in
             self?.movies.append(contentsOf: list ?? [])
         }
+    }
+    
+    func callFuntionToGetSearchResults(searchText: String) {
+        apiService.getSearchResults(searchText: searchText) { [weak self] success, message, movieList, personList in
+            self?.moviesSearchResult = movieList
+            self?.peopleSearchResult = personList
+        }
+    }
+    
+    func clearSearchResults() {
+        self.moviesSearchResult = nil
+        self.peopleSearchResult = nil
     }
 }
