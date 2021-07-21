@@ -171,7 +171,7 @@ extension MainViewController: UITableViewDataSource {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
         cell.selectionStyle = .none
-        let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row] 
+        let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
         cell.setTitle(text: movie.originalTitle ?? "")
         cell.setReleaseDate(text: movie.releaseDate ?? "")
         if let posterPath = movie.posterPath {
@@ -186,6 +186,10 @@ extension MainViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         searchMode = true
         moviesViewModel.callFuntionToGetSearchResults(searchText: searchText)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        moviesViewModel.clearSearchResults()
     }
 }
 

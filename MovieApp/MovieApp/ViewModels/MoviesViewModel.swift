@@ -52,4 +52,9 @@ class MoviesViewModel: NSObject {
             self?.peopleSearchResult = personList
         }
     }
+    
+    func clearSearchResults() {
+        self.moviesSearchResult = nil
+        self.peopleSearchResult = nil
+    }
 }
