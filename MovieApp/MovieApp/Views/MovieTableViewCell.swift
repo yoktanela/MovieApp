@@ -139,6 +139,12 @@ class MovieTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        posterImageView.image = nil
+        posterImageView.kf.cancelDownloadTask()
+    }
+    
     func setTitle(text: String) {
         titleLabel.text = text
     }

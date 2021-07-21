@@ -73,6 +73,12 @@ class PersonTableViewCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        profileImageView.image = nil
+        profileImageView.kf.cancelDownloadTask()
+    }
+    
     func setProfileImage(path: String?){
         if let path = path, let url = URL(string: Constants.imageBaseURL + path) {
             let resource = ImageResource(downloadURL: url)

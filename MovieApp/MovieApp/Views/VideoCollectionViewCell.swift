@@ -53,6 +53,12 @@ class VideoCollectionViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        thumbnailImageView.image = nil
+        thumbnailImageView.kf.cancelDownloadTask()
+    }
+    
     func setVideoKey(key: String) {
         if let url = URL(string: Constants.thumbnailBaseURL + key + "/0.jpg") {
             let resource = ImageResource(downloadURL: url)
