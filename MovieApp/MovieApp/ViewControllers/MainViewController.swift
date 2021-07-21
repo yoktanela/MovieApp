@@ -106,14 +106,21 @@ extension MainViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         var selectedObject: Any?
-        if (moviesViewModel.moviesSearchResult != nil) {
+        if let moviesSearchResult = moviesViewModel.moviesSearchResult {
             if (indexPath.section == 0) {
-                selectedObject = moviesViewModel.moviesSearchResult?[indexPath.row] as Any
-            } else if moviesViewModel.peopleSearchResult != nil {
-                selectedObject = moviesViewModel.peopleSearchResult?[indexPath.row] as Any
+                if indexPath.row < moviesSearchResult.count {
+                    selectedObject = moviesViewModel.moviesSearchResult?[indexPath.row]
+                    as Any
+                }
+            } else if let peopleSearchResult = moviesViewModel.peopleSearchResult {
+                if indexPath.row < peopleSearchResult.count {
+                    selectedObject = peopleSearchResult[indexPath.row] as Any
+                }
             }
-        } else if (moviesViewModel.peopleSearchResult != nil) {
-            selectedObject = moviesViewModel.peopleSearchResult?[indexPath.row] as Any
+        } else if let peopleSearchResult = moviesViewModel.peopleSearchResult {
+            if indexPath.row < peopleSearchResult.count {
+                selectedObject = peopleSearchResult[indexPath.row] as Any
+            }
         } else {
             selectedObject = moviesViewModel.movies[indexPath.row]
         }
@@ -165,40 +172,48 @@ extension MainViewController: UITableViewDataSource {
             if (indexPath.section == 0) {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
                 cell.selectionStyle = .none
-                let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
-                cell.setTitle(text: movie.originalTitle ?? "")
-                cell.setReleaseDate(text: movie.releaseDate ?? "")
-                if let posterPath = movie.posterPath {
-                    cell.setPosterPath(text: posterPath)
+                if indexPath.row < self.moviesViewModel.moviesSearchResult?.count ?? 0 {
+                    let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row]
+                    cell.setTitle(text: movie?.originalTitle ?? "")
+                    cell.setReleaseDate(text: movie?.releaseDate ?? "")
+                    if let posterPath = movie?.posterPath {
+                        cell.setPosterPath(text: posterPath)
+                    }
+                    cell.setVoteAvarage(rate: movie?.voteAverage ?? 10)
                 }
-                cell.setVoteAvarage(rate: movie.voteAverage)
                 return cell
             } else {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
                 cell.selectionStyle = .none
-                let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
-                cell.nameLabel.text = person?.name
-                cell.setProfileImage(path: person?.profilePath)
+                if indexPath.row < self.moviesViewModel.peopleSearchResult?.count ?? 0 {
+                    let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
+                    cell.nameLabel.text = person?.name
+                    cell.setProfileImage(path: person?.profilePath)
+                }
                 return cell
             }
         } else if (moviesViewModel.peopleSearchResult != nil) {
             let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
             cell.selectionStyle = .none
-            let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
-            cell.nameLabel.text = person?.name
-            cell.setProfileImage(path: person?.profilePath)
+            if indexPath.row < self.moviesViewModel.peopleSearchResult?.count ?? 0 {
+                let person = self.moviesViewModel.peopleSearchResult?[indexPath.row]
+                cell.nameLabel.text = person?.name
+                cell.setProfileImage(path: person?.profilePath)
+            }
             return cell
         }
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
         cell.selectionStyle = .none
-        let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
-        cell.setTitle(text: movie.originalTitle ?? "")
-        cell.setReleaseDate(text: movie.releaseDate ?? "")
-        if let posterPath = movie.posterPath {
-            cell.setPosterPath(text: posterPath)
+        if indexPath.row < self.moviesViewModel.movies.count {
+            let movie = self.moviesViewModel.moviesSearchResult?[indexPath.row] ?? self.moviesViewModel.movies[indexPath.row]
+            cell.setTitle(text: movie.originalTitle ?? "")
+            cell.setReleaseDate(text: movie.releaseDate ?? "")
+            if let posterPath = movie.posterPath {
+                cell.setPosterPath(text: posterPath)
+            }
+            cell.setVoteAvarage(rate: movie.voteAverage)
         }
-        cell.setVoteAvarage(rate: movie.voteAverage)
         return cell
     }
 }
