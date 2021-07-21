@@ -83,6 +83,14 @@ public class APIService: NSObject {
         }
     }
     
+    func getMovie(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ movie: Movie?) -> Void) {
+        AF.request(Router.getMovie(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
+            self.parseAPIResponse(response: response) { (success, message, movie: Movie?) in
+                completion(success, message, movie)
+            }
+        }
+    }
+    
     /** Used to get person by id via using Movie Database API
     - Parameters:
         - id: Unique identifier for person.
