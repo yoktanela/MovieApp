@@ -57,7 +57,6 @@ class MovieTableViewCell: UITableViewCell {
     
     public var starRatingView: StarRatingView = {
         let view = StarRatingView(frame: CGRect(x: 0, y: 0, width: 100, height: 25))
-        view.backgroundColor = UIColor.red
         return view
     }()
     
@@ -134,18 +133,20 @@ class MovieTableViewCell: UITableViewCell {
         // starRatingView constraints
         containerView.addSubview(starRatingView)
         starRatingView.translatesAutoresizingMaskIntoConstraints = false
-        let starRatingViewTopAnchor = starRatingView.topAnchor.constraint(greaterThanOrEqualTo: releaseLabel.bottomAnchor, constant: 15)
+        let starRatingViewTopAnchor = starRatingView.topAnchor.constraint(greaterThanOrEqualTo: releaseLabel.bottomAnchor, constant: 5)
+        let starRatingViewBottomAnchor = starRatingView.bottomAnchor.constraint(equalTo: self.containerView.bottomAnchor, constant: -10)
         let starRatingViewLeftAnchor = starRatingView.leftAnchor.constraint(equalTo: releaseLabel.leftAnchor, constant: 0)
         let starRatingViewRightAnchor = starRatingView.rightAnchor.constraint(lessThanOrEqualTo: containerView.rightAnchor, constant: -5)
-        containerView.addConstraints([starRatingViewTopAnchor, starRatingViewLeftAnchor, starRatingViewRightAnchor])
+        containerView.addConstraints([starRatingViewTopAnchor, starRatingViewBottomAnchor, starRatingViewLeftAnchor, starRatingViewRightAnchor])
         
         // starRatingView constraints
         containerView.addSubview(voteAvarageLabel)
         voteAvarageLabel.translatesAutoresizingMaskIntoConstraints = false
         let voteAvarageLabelTopAnchor = voteAvarageLabel.topAnchor.constraint(equalTo: starRatingView.topAnchor, constant: 0)
-        let voteAvarageLabelBottomAnchor = voteAvarageLabel.topAnchor.constraint(equalTo: starRatingView.bottomAnchor, constant: 0)
-        let voteAvarageLabelLeftAnchor = voteAvarageLabel.rightAnchor.constraint(equalTo: containerView.rightAnchor, constant: -10)
-        containerView.addConstraints([voteAvarageLabelTopAnchor, voteAvarageLabelBottomAnchor, voteAvarageLabelLeftAnchor])
+        let voteAvarageLabelBottomAnchor = voteAvarageLabel.bottomAnchor.constraint(equalTo: starRatingView.bottomAnchor, constant: 0)
+        let voteAvarageLabelRightAnchor = voteAvarageLabel.rightAnchor.constraint(greaterThanOrEqualTo: containerView.rightAnchor, constant: -10)
+        let voteAvarageLabelLeftAnchor = voteAvarageLabel.leadingAnchor.constraint(equalTo: starRatingView.trailingAnchor, constant: 10)
+        containerView.addConstraints([voteAvarageLabelTopAnchor, voteAvarageLabelBottomAnchor, voteAvarageLabelLeftAnchor, voteAvarageLabelRightAnchor])
     }
     
     required init?(coder: NSCoder) {

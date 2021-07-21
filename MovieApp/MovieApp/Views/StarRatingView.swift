@@ -18,10 +18,24 @@ class StarRatingView: UIView {
         super.init(frame: frame)
         
         for i in 0..<starCount {
-            let starImageView = UIImageView(frame: CGRect(x: (25 + padding)*CGFloat(i) , y: 0, width: 25, height: 25))
+            let starImageView = UIImageView(frame: CGRect(x: (25 + padding)*CGFloat(i) ,y: 0, width: 25, height: 25))
             starImageView.image = UIImage(named: "star")
+            let emptyStarImageView = starImageView.copyView() as! UIImageView
+            emptyStarImageView.image = UIImage(named: "empty_star")
             starImageViews.append(starImageView)
+            self.addSubview(emptyStarImageView)
             self.addSubview(starImageView)
+            if (i == 0 ) {
+                self.translatesAutoresizingMaskIntoConstraints = false
+                let top = self.topAnchor.constraint(equalTo: starImageView.topAnchor, constant: 0)
+                let bottom = self.bottomAnchor.constraint(equalTo: starImageView.bottomAnchor, constant: 0)
+                let start = self.trailingAnchor.constraint(equalTo: starImageView.trailingAnchor, constant: 0)
+                self.addConstraints([top, bottom, start])
+            } else if (i == starCount-1) {
+                self.translatesAutoresizingMaskIntoConstraints = false
+                let right = self.rightAnchor.constraint(equalTo: starImageView.rightAnchor, constant: 0)
+                self.addConstraint(right)
+            }
         }
     }
     
@@ -57,4 +71,10 @@ class StarRatingView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+}
+
+extension UIView{
+func copyView() -> AnyObject{
+    return NSKeyedUnarchiver.unarchiveObject(with: NSKeyedArchiver.archivedData(withRootObject: self))! as AnyObject
+ }
 }
