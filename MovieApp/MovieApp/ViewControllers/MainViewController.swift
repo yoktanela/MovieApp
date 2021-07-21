@@ -105,11 +105,27 @@ extension MainViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if (moviesViewModel.movies.count > indexPath.row) {
-            let movie = moviesViewModel.movies[indexPath.row]
+        var selectedObject: Any?
+        if (moviesViewModel.moviesSearchResult != nil) {
+            if (indexPath.section == 0) {
+                selectedObject = moviesViewModel.moviesSearchResult?[indexPath.row] as Any
+            } else if moviesViewModel.peopleSearchResult != nil {
+                selectedObject = moviesViewModel.peopleSearchResult?[indexPath.row] as Any
+            }
+        } else if (moviesViewModel.peopleSearchResult != nil) {
+            selectedObject = moviesViewModel.peopleSearchResult?[indexPath.row] as Any
+        } else {
+            selectedObject = moviesViewModel.movies[indexPath.row]
+        }
+        
+        if let selectedObject = selectedObject, let movie = selectedObject as? Movie {
             let movieDetailViewController = MovieDetailViewController()
             movieDetailViewController.movieId = movie.id
             self.navigationController?.pushViewController(movieDetailViewController, animated: true)
+        } else if let selectedObject = selectedObject, let person = selectedObject as? Person {
+            let personDetailViewController = PersonDetailViewController()
+            personDetailViewController.personId = person.id
+            self.navigationController?.pushViewController(personDetailViewController, animated: true)
         }
     }
 }
