@@ -69,10 +69,12 @@ class MovieDetailViewController: UIViewController {
         return label
     }()
     
-    var videoViewModel: VideoViewModel!
-    var videosCollectionView: UICollectionView!
+    private var videoViewModel: VideoViewModel!
+    private var videosCollectionView: UICollectionView!
     private var videosDataSource: CollectionViewDataSource<VideoCollectionViewCell,Video>!
-    var castCollectionView: UICollectionView!
+    private var castViewModel: CastViewModel!
+    private var castCollectionView: UICollectionView!
+    private var castDataSource: CollectionViewDataSource<CastMemberCollectionViewCell,CastMember>!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -163,8 +165,9 @@ class MovieDetailViewController: UIViewController {
         let castTableViewBottom = castCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -20)
         let castTableViewLeft = castCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
         let castTableViewRight = castCollectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 0)
-        let castTableViewHeight = castCollectionView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.2)
+        let castTableViewHeight = castCollectionView.heightAnchor.constraint(equalToConstant: 65)
         self.view.addConstraints([castTableViewTop, castTableViewBottom, castTableViewLeft, castTableViewRight, castTableViewHeight])
+        castCollectionView.register(CastMemberCollectionViewCell.self, forCellWithReuseIdentifier: "castMemberCell")
         
         callToViewModelForUIUpdate()
     }
@@ -173,6 +176,11 @@ class MovieDetailViewController: UIViewController {
         self.videoViewModel = VideoViewModel(movieId: self.movie.id)
         self.videoViewModel.bindVideoViewModelToController = {
             self.updateDataSource()
+        }
+        
+        self.castViewModel = CastViewModel(movieId: self.movie.id)
+        self.castViewModel.bindCastViewModelToController = {
+            self.updateDataForCastSource()
         }
     }
     
@@ -184,6 +192,18 @@ class MovieDetailViewController: UIViewController {
         DispatchQueue.main.async {
             self.videosCollectionView.dataSource = self.videosDataSource
             self.videosCollectionView.reloadData()
+        }
+    }
+    
+    func updateDataForCastSource(){
+        self.castDataSource = CollectionViewDataSource(cellIdentifier: "castMemberCell", items: self.castViewModel.cast, configureCell: { (cell, castMember) in
+            cell.nameLabel.text = castMember.name
+            cell.roleLabel.text = castMember.character
+        })
+        
+        DispatchQueue.main.async {
+            self.castCollectionView.dataSource = self.castDataSource
+            self.castCollectionView.reloadData()
         }
     }
 }

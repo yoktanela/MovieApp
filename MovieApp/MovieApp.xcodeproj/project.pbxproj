@@ -38,6 +38,8 @@
 		186F65F726A7842400F07D44 /* VideoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65F626A7842400F07D44 /* VideoViewModel.swift */; };
 		186F65F926A78D0600F07D44 /* CollectionViewDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65F826A78D0600F07D44 /* CollectionViewDataSource.swift */; };
 		186F65FB26A7917C00F07D44 /* VideoPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65FA26A7917C00F07D44 /* VideoPlayerViewController.swift */; };
+		186F65FD26A79B4500F07D44 /* CastViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65FC26A79B4500F07D44 /* CastViewModel.swift */; };
+		186F65FF26A79C4500F07D44 /* CastMemberCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 186F65FE26A79C4500F07D44 /* CastMemberCollectionViewCell.swift */; };
 		1B610A5760577535F3E7115B /* Pods_MovieApp_MovieAppUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 208C70958B6E1B9A5A720CA4 /* Pods_MovieApp_MovieAppUITests.framework */; };
 		7F4DD76455255F6320EA44C2 /* Pods_MovieApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1C28736D0592DE9F18889E9B /* Pods_MovieApp.framework */; };
 		F0C69F85A4482A84EF6AF0AD /* Pods_MovieAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90D8EEE9CD854960E9529734 /* Pods_MovieAppTests.framework */; };
@@ -99,6 +101,8 @@
 		186F65F626A7842400F07D44 /* VideoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoViewModel.swift; sourceTree = "<group>"; };
 		186F65F826A78D0600F07D44 /* CollectionViewDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewDataSource.swift; sourceTree = "<group>"; };
 		186F65FA26A7917C00F07D44 /* VideoPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewController.swift; sourceTree = "<group>"; };
+		186F65FC26A79B4500F07D44 /* CastViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastViewModel.swift; sourceTree = "<group>"; };
+		186F65FE26A79C4500F07D44 /* CastMemberCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastMemberCollectionViewCell.swift; sourceTree = "<group>"; };
 		1C28736D0592DE9F18889E9B /* Pods_MovieApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MovieApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DAB726C4E4AC8E1FCB94992 /* Pods-MovieApp-MovieAppUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MovieApp-MovieAppUITests.release.xcconfig"; path = "Target Support Files/Pods-MovieApp-MovieAppUITests/Pods-MovieApp-MovieAppUITests.release.xcconfig"; sourceTree = "<group>"; };
 		208C70958B6E1B9A5A720CA4 /* Pods_MovieApp_MovieAppUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MovieApp_MovieAppUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -231,6 +235,7 @@
 			children = (
 				186F65E226A6E0B300F07D44 /* MoviesViewModel.swift */,
 				186F65F626A7842400F07D44 /* VideoViewModel.swift */,
+				186F65FC26A79B4500F07D44 /* CastViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -242,6 +247,7 @@
 				186F65E626A6EFB900F07D44 /* SectionHeaderView.swift */,
 				186F65EE26A71BF900F07D44 /* StarRatingView.swift */,
 				186F65F426A77E2B00F07D44 /* VideoCollectionViewCell.swift */,
+				186F65FE26A79C4500F07D44 /* CastMemberCollectionViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -507,6 +513,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				186F65FF26A79C4500F07D44 /* CastMemberCollectionViewCell.swift in Sources */,
 				186F65BD26A6121200F07D44 /* Media.swift in Sources */,
 				186F65B926A5D6EB00F07D44 /* Person.swift in Sources */,
 				186F65FB26A7917C00F07D44 /* VideoPlayerViewController.swift in Sources */,
@@ -526,6 +533,7 @@
 				186F65EF26A71BF900F07D44 /* StarRatingView.swift in Sources */,
 				186F65C126A62B1A00F07D44 /* Video.swift in Sources */,
 				186F65DD26A6D2C200F07D44 /* UIColor+HexValue.swift in Sources */,
+				186F65FD26A79B4500F07D44 /* CastViewModel.swift in Sources */,
 				186F65F726A7842400F07D44 /* VideoViewModel.swift in Sources */,
 				1802281226A5745A00168256 /* SceneDelegate.swift in Sources */,
 				1802284526A5921100168256 /* APIService.swift in Sources */,
