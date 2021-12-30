@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import RxSwift
+import RxCocoa
 
 class MovieViewModel: NSObject {
     
@@ -28,23 +30,29 @@ class MovieViewModel: NSObject {
     }
     
     func callFunctionToGetMovie(id: Int) {
-        apiService.getMovie(id: id, completion: { [weak self] success, message, movie in
-            self?.originalTitle.value = movie?.originalTitle
-            self?.backdropPath.value = movie?.backdropPath
-            self?.overview.value = movie?.overview
-            self?.voteAverage.value = movie?.voteAverage
-        })
+        apiService.getMovie(id: id)
+            .observe(on: MainScheduler.instance)
+            .subscribe( onNext: {[weak self] movie in
+                self?.originalTitle.value = movie.originalTitle
+                self?.backdropPath.value = movie.backdropPath
+                self?.overview.value = movie.overview
+                self?.voteAverage.value = movie.voteAverage
+            })
     }
     
     func callFunctionToGetVideos(id: Int) {
-        apiService.getVideos(id: id, completion: { [weak self] success, message, videoResult in
-            self?.videos.value = videoResult?.results
-        })
+        apiService.getVideos(id: id)
+            .observe(on: MainScheduler.instance)
+            .subscribe( onNext: {[weak self] videoResult in
+                self?.videos.value = videoResult.results
+            })
     }
     
     func callFunctionToGetCast(id: Int) {
-        apiService.getCast(id: id, completion: { [weak self] success, message, cast in
-            self?.cast.value = cast?.cast
-        })
+        apiService.getCast(id: id)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] cast in
+                self?.cast.value = cast.cast
+            })
     }
 }

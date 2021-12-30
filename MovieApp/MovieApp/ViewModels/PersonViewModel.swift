@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import RxSwift
+import RxCocoa
 
 class PersonViewModel: NSObject {
     
@@ -25,17 +27,21 @@ class PersonViewModel: NSObject {
     }
     
     func callFunctionToGetPerson(id: Int) {
-        apiService.getPerson(id: id, completion: { [weak self] success, message, person in
-            self?.profilePath.value = person?.profilePath
-            self?.name.value = person?.name
-            self?.biography.value = person?.biography
-        })
+        apiService.getPerson(id: id)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] person in
+                self?.profilePath.value = person.profilePath
+                self?.name.value = person.name
+                self?.biography.value = person.biography
+            })
     }
     
     func callFunctionToGetMovieCredits(id: Int) {
-        apiService.getMovieCredits(id: id, completion: { [weak self] success, message, movieCreditResponse in
-            self?.movieCredits.value = movieCreditResponse?.cast
-        })
+        apiService.getMovieCredits(id: id)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] movieCreditResponse in
+                self?.movieCredits.value = movieCreditResponse.cast
+            })
     }
 }
 

@@ -6,6 +6,8 @@
 //
 
 import Foundation
+import RxSwift
+import RxCocoa
 
 class MoviesViewModel: NSObject {
     
@@ -41,16 +43,19 @@ class MoviesViewModel: NSObject {
     }
     
     func callFunctionToGetMovieData(page: Int = 1) {
-        apiService.getPopularMovies(page: page) { [weak self] success, message, list in
-            self?.movies.append(contentsOf: list ?? [])
-        }
+        apiService.getPopularMovies(page: page)
+            .subscribe(onNext: { [weak self] movieList in
+            self?.movies.append(contentsOf: movieList)
+        })
     }
     
     func callFuntionToGetSearchResults(searchText: String) {
-        apiService.getSearchResults(searchText: searchText) { [weak self] success, message, movieList, personList in
-            self?.moviesSearchResult = movieList
-            self?.peopleSearchResult = personList
-        }
+        apiService.getSearchResults(searchText: searchText)
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] movieList, personList in
+                self?.moviesSearchResult = movieList
+                self?.peopleSearchResult = personList
+            })
     }
     
     func clearSearchResults() {

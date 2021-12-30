@@ -7,6 +7,8 @@
 
 import Foundation
 import Alamofire
+import RxSwift
+import RxCocoa
 
 public class APIService: NSObject {
     
@@ -30,6 +32,11 @@ public class APIService: NSObject {
         super.init()
     }
     
+    private func buildRequest(urlRequest: URLRequest) -> Observable<(response: HTTPURLResponse, data: Data)> {
+        // TODO: Use response to determine the unsuccessful cases
+        return URLSession.shared.rx.response(request: urlRequest)
+    }
+
     // Generic function to parse api response
     private func parseAPIResponse<T: Decodable> (response: AFDataResponse<Any>, completion: @escaping (_ success: Bool, _ message: String?, _ data: T?) -> Void) {
         switch response.result {
@@ -75,19 +82,23 @@ public class APIService: NSObject {
         - message: A string value that returns error message if any error occurs.
         - movieList: List of ‘Movie’ objects.
      */
-    func getPopularMovies(page: Int = 1, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: [Movie]?) -> Void) {
-        AF.request(Router.getPopularMovies(page: page, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, moviesResponse: MoviesResponse?) in
-                completion(success, message, moviesResponse?.results)
-            }
+    func getPopularMovies(page: Int = 1) -> Observable<[Movie]> {
+        guard let urlRequest = Router.getPopularMovies(page: page, language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<[Movie]>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { _, data in
+            try JSONDecoder().decode(MoviesResponse.self, from: data).results
         }
     }
     
-    func getMovie(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ movie: Movie?) -> Void) {
-        AF.request(Router.getMovie(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, movie: Movie?) in
-                completion(success, message, movie)
-            }
+    func getMovie(id: Int) -> Observable<Movie> {
+        guard let urlRequest = Router.getMovie(id: id, language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<Movie>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { _, data in
+            try JSONDecoder().decode(Movie.self, from: data)
         }
     }
     
@@ -99,11 +110,13 @@ public class APIService: NSObject {
         - message: A string value that returns error message if any error occurs.
         - person: Person object that meets requested features.
      */
-    func getPerson(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ person: Person?) -> Void) {
-        AF.request(Router.getPerson(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, person: Person?) in
-                completion(success, message, person)
-            }
+    func getPerson(id: Int) -> Observable<Person> {
+        guard let urlRequest = Router.getPerson(id: id, language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<Person>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { _, data in
+            try JSONDecoder().decode(Person.self, from: data)
         }
     }
     
@@ -116,35 +129,30 @@ public class APIService: NSObject {
         - movieList: List of ‘Movie’ objects.
         - personList: List of ‘Person’ objects.
      */
-    func getSearchResults(searchText: String, completion: @escaping (_ success: Bool, _ message: String?, _ movieList: [Movie]?, _ personList: [Person]?) -> Void) {
-        AF.request(Router.getSearchResults(searchText: searchText, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, mediaResponse: MediaResponse?) in
-                var movies: [Movie]?
-                var persons: [Person]?
-                
-                // Filter movies and persons from the media list that contains both media types.
-                mediaResponse?.results.forEach({ media in
-                    switch media {
-                    case .movie:
-                        if let movie = media.get() as? Movie {
-                            if movies == nil {
-                                movies = []
-                            }
-                            movies?.append(movie)
-                        }
-                    case .person:
-                        if let person = media.get() as? Person {
-                            if persons == nil {
-                                persons = []
-                            }
-                            persons?.append(person)
-                        }
-                    default:
-                        break
+    func getSearchResults(searchText: String) -> Observable<(movies: [Movie], persons: [Person])> {
+        
+        guard let urlRequest = Router.getSearchResults(searchText: searchText, language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<(movies: [Movie], persons: [Person])>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { result, data in
+            var movies: [Movie] = []
+            var persons: [Person] = []
+            try JSONDecoder().decode(MediaResponse.self, from: data).results.map({ media in
+                switch media {
+                case .movie:
+                    if let movie = media.get() as? Movie {
+                        movies.append(movie)
                     }
-                })
-                completion(success, message, movies, persons)
-            }
+                case .person:
+                    if let person = media.get() as? Person {
+                        persons.append(person)
+                    }
+                default:
+                    break
+                }
+            })
+            return (movies: movies, persons: persons)
         }
     }
     
@@ -156,11 +164,13 @@ public class APIService: NSObject {
         - message: A string value that returns error message if any error occurs.
         - cast: 'Cast' object that contains all cast memebers of movie
      */
-    func getCast(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ cast: Cast?) -> Void) {
-        AF.request(Router.getCast(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, cast: Cast?) in
-                completion(success, message, cast)
-            }
+    func getCast(id: Int) -> Observable<Cast> {
+        guard let urlRequest = Router.getCast(id: id, language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<Cast>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { _, data in
+            try JSONDecoder().decode(Cast.self, from: data)
         }
     }
     
@@ -172,11 +182,13 @@ public class APIService: NSObject {
         - message: A string value that returns error message if any error occurs.
         - videoResult: 'VideoResult' object that contains all available videos for movie.
      */
-    func getVideos(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ videoResult: VideoResult?) -> Void) {
-        AF.request(Router.getVideos(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, videos: VideoResult?) in
-                completion(success, message, videos)
-            }
+    func getVideos(id: Int) -> Observable<VideoResult> {
+        guard let urlRequest = Router.getVideos(id: id, language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<VideoResult>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { _, data in
+            try JSONDecoder().decode(VideoResult.self, from: data)
         }
     }
     
@@ -188,11 +200,13 @@ public class APIService: NSObject {
         - message: A string value that returns error message if any error occurs.
         - movieCreditResponse: 'MovieCreditResponse' object that contains movies that person take role.
      */
-    func getMovieCredits(id: Int, completion: @escaping (_ success: Bool, _ message: String?, _ movieCreditResponse: MovieCreditResponse?) -> Void) {
-        AF.request(Router.getMovieCredits(id: id, language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, movieCreditResponse: MovieCreditResponse?) in
-                completion(success, message, movieCreditResponse)
-            }
+    func getMovieCredits(id: Int) -> Observable<MovieCreditResponse> {
+        guard let urlRequest = Router.getMovieCredits(id: id, language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<MovieCreditResponse>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { _response, data in
+            try JSONDecoder().decode(MovieCreditResponse.self, from: data)
         }
     }
     
@@ -203,11 +217,13 @@ public class APIService: NSObject {
         - message: A string value that returns error message if any error occurs.
         - genres: 'Genres' object that contains all genres for movies.
      */
-    func getGenres(completion: @escaping (_ success: Bool, _ message: String?, _ genres: Genres?) -> Void) {
-        AF.request(Router.getGenres(language: Locale.preferredLanguages[0])).responseJSON { (response) in
-            self.parseAPIResponse(response: response) { (success, message, genres: Genres?) in
-                completion(success, message, genres)
-            }
+    func getGenres() -> Observable<Genres> {
+        guard let urlRequest = Router.getGenres(language: Locale.preferredLanguages[0]).urlRequest else {
+            return Observable<Genres>.empty()
+        }
+        
+        return buildRequest(urlRequest: urlRequest).map { _, data in
+            try JSONDecoder().decode(Genres.self, from: data)
         }
     }
 }
