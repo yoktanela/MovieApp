@@ -28,49 +28,30 @@ public class APIService: NSObject {
         }
     }
     
+    enum ApiError: Error {
+      case serverFailure
+      case invalidKey
+    }
+    
+    let disposeBag = DisposeBag()
+    
     override init() {
         super.init()
     }
     
-    private func buildRequest(urlRequest: URLRequest) -> Observable<(response: HTTPURLResponse, data: Data)> {
-        // TODO: Use response to determine the unsuccessful cases
-        return URLSession.shared.rx.response(request: urlRequest)
-    }
-
-    // Generic function to parse api response
-    private func parseAPIResponse<T: Decodable> (response: AFDataResponse<Any>, completion: @escaping (_ success: Bool, _ message: String?, _ data: T?) -> Void) {
-        switch response.result {
-        case .success:
-            guard let data = response.data else {
-                return
-            }
-            
-            let jsonDecoder = JSONDecoder()
-            do {
-                // Decode api result using given class type
-                let object = try jsonDecoder.decode(T.self, from: data)
-                completion(true, nil, object)
-            } catch {
-                do {
-                    let result = try jsonDecoder.decode(APIErrorResponse.self, from: data)
-                    if result.errors.count > 0 {
-                        completion(false, result.errors[0], nil)
-                    } else {
-                        //TODO: Localize error message
-                        completion(false, "unknown error", nil)
-                    }
-                } catch {
-                    do {
-                        let failResult = try jsonDecoder.decode(APIFailResponse.self, from: data)
-                        completion(false, failResult.statusMessage, nil)
-                    } catch {
-                        //TODO: Localize error message
-                        completion(false, "unknown error", nil)
-                    }
-                }
-            }
-        case .failure(let error):
-            completion(false, error.errorDescription, nil)
+    // Generic function to get and parse api response
+    private func buildRequest<T:Decodable>(urlRequest: URLRequest) -> Observable<T> {
+        let response = URLSession.shared.rx.response(request: urlRequest)
+        
+        return response.map { response, data -> T in
+          switch response.statusCode {
+          case 200 ..< 300:
+            return try JSONDecoder().decode(T.self, from: data)
+          case 401:
+            throw ApiError.invalidKey
+          default:
+            throw ApiError.serverFailure
+          }
         }
     }
     
@@ -87,8 +68,17 @@ public class APIService: NSObject {
             return Observable<[Movie]>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { _, data in
-            try JSONDecoder().decode(MoviesResponse.self, from: data).results
+        let response: Observable<MoviesResponse> = buildRequest(urlRequest: urlRequest)
+        
+        return Observable<[Movie]>.create { observer in
+            response.subscribe { movieResponse in
+                observer.onNext(movieResponse.results)
+            } onError: { error in
+                observer.onError(error)
+            } onCompleted: {
+                observer.onCompleted()
+            }
+            return Disposables.create()
         }
     }
     
@@ -97,9 +87,7 @@ public class APIService: NSObject {
             return Observable<Movie>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { _, data in
-            try JSONDecoder().decode(Movie.self, from: data)
-        }
+        return buildRequest(urlRequest: urlRequest) as Observable<Movie>
     }
     
     /** Used to get person by id via using Movie Database API
@@ -115,9 +103,7 @@ public class APIService: NSObject {
             return Observable<Person>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { _, data in
-            try JSONDecoder().decode(Person.self, from: data)
-        }
+        return buildRequest(urlRequest: urlRequest) as Observable<Person>
     }
     
     /** Used to search multiple models in a single request.
@@ -135,24 +121,33 @@ public class APIService: NSObject {
             return Observable<(movies: [Movie], persons: [Person])>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { result, data in
-            var movies: [Movie] = []
-            var persons: [Person] = []
-            try JSONDecoder().decode(MediaResponse.self, from: data).results.map({ media in
-                switch media {
-                case .movie:
-                    if let movie = media.get() as? Movie {
-                        movies.append(movie)
+        let response: Observable<MediaResponse> = buildRequest(urlRequest: urlRequest)
+        
+        return Observable<(movies: [Movie], persons: [Person])>.create { observer in
+            response.subscribe { mediaResponse in
+                var movies: [Movie] = []
+                var persons: [Person] = []
+                mediaResponse.results.map({ media in
+                    switch media {
+                    case .movie:
+                        if let movie = media.get() as? Movie {
+                            movies.append(movie)
+                        }
+                    case .person:
+                        if let person = media.get() as? Person {
+                            persons.append(person)
+                        }
+                    default:
+                        break
                     }
-                case .person:
-                    if let person = media.get() as? Person {
-                        persons.append(person)
-                    }
-                default:
-                    break
-                }
-            })
-            return (movies: movies, persons: persons)
+                })
+                observer.onNext((movies: movies, persons: persons))
+            } onError: { error in
+                observer.onError(error)
+            } onCompleted: {
+                observer.onCompleted()
+            }
+            return Disposables.create()
         }
     }
     
@@ -169,9 +164,7 @@ public class APIService: NSObject {
             return Observable<Cast>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { _, data in
-            try JSONDecoder().decode(Cast.self, from: data)
-        }
+        return buildRequest(urlRequest: urlRequest) as Observable<Cast>
     }
     
     /** Used to get available videos for a movie.
@@ -187,9 +180,7 @@ public class APIService: NSObject {
             return Observable<VideoResult>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { _, data in
-            try JSONDecoder().decode(VideoResult.self, from: data)
-        }
+        return buildRequest(urlRequest: urlRequest) as Observable<VideoResult>
     }
     
     /** Used to get the movie credits for a person.
@@ -205,9 +196,7 @@ public class APIService: NSObject {
             return Observable<MovieCreditResponse>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { _response, data in
-            try JSONDecoder().decode(MovieCreditResponse.self, from: data)
-        }
+        return buildRequest(urlRequest: urlRequest) as Observable<MovieCreditResponse>
     }
     
     /** Used to get the list of official genres for movies.
@@ -222,8 +211,6 @@ public class APIService: NSObject {
             return Observable<Genres>.empty()
         }
         
-        return buildRequest(urlRequest: urlRequest).map { _, data in
-            try JSONDecoder().decode(Genres.self, from: data)
-        }
+        return buildRequest(urlRequest: urlRequest) as Observable<Genres>
     }
 }
