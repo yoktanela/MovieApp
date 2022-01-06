@@ -79,4 +79,10 @@ class PersonTableViewCell: UITableViewCell {
             profileImageView.kf.setImage(with: resource)
         }
     }
+    
+    func customizeCell(person: Person) {
+        selectionStyle = UITableViewCell.SelectionStyle.none
+        nameLabel.text = person.name
+        setProfileImage(path: person.profilePath)
+    }
 }

@@ -52,7 +52,7 @@ class MainViewController: UIViewController {
             moviesTableView.tableHeaderView = searchBar
         }
 
-        //searchController.searchBar.delegate = self
+        searchController.searchBar.delegate = self
         searchController.searchBar.setImage(UIImage(named: "search_icon"), for:  UISearchBar.Icon.search, state: .normal)
         searchController.searchBar.tintColor = UIColor(netHex: 0x006ED5)
         if #available(iOS 11.0, *) {
@@ -66,17 +66,35 @@ class MainViewController: UIViewController {
     func callToViewModelForUIUpdate() {
         self.moviesViewModel = MoviesViewModel()
         
-        self.moviesViewModel.movies.asObservable().bind(to: self.moviesTableView.rx.items) { (tableView, row, element ) in
-            let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: IndexPath(row : row, section : 0)) as! MovieTableViewCell
-            cell.customizeCell(movie: element)
-            return cell
+        self.moviesViewModel.media.asObservable().bind(to: self.moviesTableView.rx.items) { (tableView, row, element ) in
+            switch element {
+            case .movie:
+                let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: IndexPath(row : row, section : 0)) as! MovieTableViewCell
+                cell.customizeCell(movie: element.get() as! Movie)
+                return cell
+            case .person:
+                let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: IndexPath(row : row, section : 1)) as! PersonTableViewCell
+                cell.customizeCell(person: element.get() as! Person)
+                return cell
+            default:
+                return UITableViewCell()
+            }
         }.disposed(by: disposeBag)
         
-        self.moviesTableView.rx.modelSelected(Movie.self)
-            .subscribe(onNext: { movie in
-                let movieDetailViewController = MovieDetailViewController()
-                movieDetailViewController.movieId = movie.id
-                self.navigationController?.pushViewController(movieDetailViewController, animated: true)
+        self.moviesTableView.rx.modelSelected(Media.self)
+            .subscribe(onNext: { media in
+                switch media {
+                case .movie:
+                    let movieDetailViewController = MovieDetailViewController()
+                    movieDetailViewController.movieId = (media.get() as! Movie).id
+                    self.navigationController?.pushViewController(movieDetailViewController, animated: true)
+                case .person:
+                    let personDetailViewController = PersonDetailViewController()
+                    personDetailViewController.personId = (media.get() as! Person).id
+                    self.navigationController?.pushViewController(personDetailViewController, animated: true)
+                case .others:
+                    return
+                }
             })
             .disposed(by: disposeBag)
     }

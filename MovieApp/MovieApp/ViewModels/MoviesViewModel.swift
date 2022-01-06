@@ -16,11 +16,25 @@ class MoviesViewModel: NSObject {
     private let disposeBag = DisposeBag()
     
     var movies = BehaviorRelay<[Movie]>(value: [])
-    
+    var people = BehaviorRelay<[Person]>(value: [])
+    var media = BehaviorRelay<[Media]>(value: [])
+
     override init() {
         super.init()
         apiService = APIService()
         callFunctionToGetMovieData()
+        
+        self.movies.subscribe(onNext: { movieList in
+            movieList.forEach { movie in
+                self.media.add(element: Media.movie(movie))
+            }
+        })
+        
+        self.people.subscribe(onNext: { personList in
+            personList.forEach { person in
+                self.media.add(element: Media.person(person))
+            }
+        })
     }
     
     func callFunctionToGetMovieData(page: Int = 1) {
@@ -38,7 +52,14 @@ class MoviesViewModel: NSObject {
         apiService.getSearchResults(searchText: searchText)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movieList, personList in
-                self?.movies.accept(movieList)
+                var mediaList: [Media] = []
+                movieList.forEach { movie in
+                    mediaList.append(Media.movie(movie))
+                }
+                personList.forEach { person in
+                    mediaList.append(Media.person(person))
+                }
+                self?.media.accept(mediaList)
             })
     }
     
