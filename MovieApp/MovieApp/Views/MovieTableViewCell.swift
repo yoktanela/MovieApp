@@ -158,4 +158,14 @@ class MovieTableViewCell: UITableViewCell {
         voteAvarageLabel.text = String(describing: rate)
         starRatingView.setRate(rating: Float(rate)/2)
     }
+    
+    func customizeCell(movie: Movie) {
+        selectionStyle = UITableViewCell.SelectionStyle.none
+        setTitle(text: movie.originalTitle ?? "")
+        setReleaseDate(text: movie.releaseDate ?? "")
+        if let posterPath = movie.posterPath {
+            setPosterPath(text: posterPath)
+        }
+        setVoteAvarage(rate: movie.voteAverage)
+    }
 }

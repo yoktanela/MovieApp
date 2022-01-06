@@ -13,31 +13,12 @@ class MoviesViewModel: NSObject {
     
     // api service
     private var apiService: APIService!
-    private(set) var movies : [Movie]! {
-        didSet {
-            self.bindMoviesViewModelToController()
-        }
-    }
+    private let disposeBag = DisposeBag()
     
-    private(set) var moviesSearchResult : [Movie]? {
-        didSet {
-            self.bindMoviesSearchResultsViewModelToController()
-        }
-    }
-    
-    private(set) var peopleSearchResult : [Person]? {
-        didSet {
-            self.bindPeopleSearchResultsViewModelToController()
-        }
-    }
-    
-    var bindMoviesViewModelToController : (() -> ()) = {}
-    var bindMoviesSearchResultsViewModelToController : (() -> ()) = {}
-    var bindPeopleSearchResultsViewModelToController : (() -> ()) = {}
+    var movies = BehaviorRelay<[Movie]>(value: [])
     
     override init() {
         super.init()
-        movies = []
         apiService = APIService()
         callFunctionToGetMovieData()
     }
@@ -45,7 +26,11 @@ class MoviesViewModel: NSObject {
     func callFunctionToGetMovieData(page: Int = 1) {
         apiService.getPopularMovies(page: page)
             .subscribe(onNext: { [weak self] movieList in
-            self?.movies.append(contentsOf: movieList)
+                guard let oldDatas = self?.movies.value else {
+                    self?.movies.accept(movieList)
+                    return
+                }
+                self?.movies.accept(oldDatas + movieList)
         })
     }
     
@@ -53,13 +38,10 @@ class MoviesViewModel: NSObject {
         apiService.getSearchResults(searchText: searchText)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movieList, personList in
-                self?.moviesSearchResult = movieList
-                self?.peopleSearchResult = personList
+                self?.movies.accept(movieList)
             })
     }
     
     func clearSearchResults() {
-        self.moviesSearchResult = nil
-        self.peopleSearchResult = nil
     }
 }
