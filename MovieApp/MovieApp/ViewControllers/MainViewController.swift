@@ -82,6 +82,21 @@ class MainViewController: UIViewController {
         searchInput.subscribe(onNext: { [weak self] text in
             self?.moviesViewModel.callFuntionToGetSearchResults(searchText: text)
         })
+        
+        let cancelSearch =  searchController.searchBar.rx.text
+            .filter{ $0?.count == 0 }
+            .asObservable()
+        
+        let cancel = Observable.merge(
+            cancelSearch.map { _ in true },
+            searchController.searchBar.rx.cancelButtonClicked.map{_ in true}.asObservable()
+        )
+        .startWith(false)
+        .asObservable()
+        
+        cancel.subscribe(onNext: { [weak self] cancel in
+            self?.moviesViewModel.clearSearchResults()
+        })
     }
     
     func callToViewModelForUIUpdate() {
@@ -133,17 +148,5 @@ extension MainViewController: UITableViewDelegate {
         let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
         headerView.setTitle(title: headerTitle)
         return headerView
-    }
-}
-
-extension MainViewController: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        searchMode = true
-        moviesViewModel.callFuntionToGetSearchResults(searchText: searchText)
-    }
-    
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        moviesViewModel.clearSearchResults()
-        searchMode = false
     }
 }

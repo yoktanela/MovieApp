@@ -72,6 +72,7 @@ class MoviesViewModel: NSObject {
     }
     
     func clearSearchResults() {
+        self.running.accept(false)
         self.media.accept([])
         self.movies.value.forEach { movie in
             let media = Media.movie(movie)
