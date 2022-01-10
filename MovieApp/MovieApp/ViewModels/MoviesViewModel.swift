@@ -18,6 +18,7 @@ class MoviesViewModel: NSObject {
     var movies = BehaviorRelay<[Movie]>(value: [])
     var people = BehaviorRelay<[Person]>(value: [])
     var media = BehaviorRelay<[Media]>(value: [])
+    var running = BehaviorRelay<Bool>(value: true)
 
     override init() {
         super.init()
@@ -38,8 +39,11 @@ class MoviesViewModel: NSObject {
     }
     
     func callFunctionToGetMovieData(page: Int = 1) {
-        apiService.getPopularMovies(page: page)
-            .subscribe(onNext: { [weak self] movieList in
+        let search = apiService.getPopularMovies(page: page).asObservable()
+        
+        search.map{_ in false}.asObservable().bind(to: self.running)
+        
+        search.subscribe(onNext: { [weak self] movieList in
                 guard let oldDatas = self?.movies.value else {
                     self?.movies.accept(movieList)
                     return
@@ -49,8 +53,12 @@ class MoviesViewModel: NSObject {
     }
     
     func callFuntionToGetSearchResults(searchText: String) {
-        apiService.getSearchResults(searchText: searchText)
-            .observe(on: MainScheduler.instance)
+        self.running.accept(true)
+        let search = apiService.getSearchResults(searchText: searchText)
+        
+        search.map{_ in false}.asObservable().bind(to: self.running)
+        
+        search.observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movieList, personList in
                 var mediaList: [Media] = []
                 movieList.forEach { movie in

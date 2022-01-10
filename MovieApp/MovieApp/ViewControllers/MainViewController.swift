@@ -13,6 +13,7 @@ class MainViewController: UIViewController {
 
     var searchController: UISearchController!
     var moviesTableView: UITableView!
+    var activityIndicator: UIActivityIndicatorView!
     
     private let disposeBag = DisposeBag()
     private var moviesViewModel: MoviesViewModel!
@@ -33,6 +34,17 @@ class MainViewController: UIViewController {
         moviesTableView.register(PersonTableViewCell.self, forCellReuseIdentifier: "PersonTableViewCell")
         moviesTableView.separatorStyle = .none
         
+        self.activityIndicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.gray)
+        activityIndicator.center = self.view.center
+        self.view.addSubview(activityIndicator)
+        
+        self.moviesViewModel = MoviesViewModel()
+        
+        self.moviesViewModel.running
+            .asDriver()
+            .drive(activityIndicator.rx.isAnimating)
+            .disposed(by: disposeBag)
+        
         createSearchBar()
         callToViewModelForUIUpdate()
     }
@@ -52,7 +64,6 @@ class MainViewController: UIViewController {
             moviesTableView.tableHeaderView = searchBar
         }
 
-        searchController.searchBar.delegate = self
         searchController.searchBar.setImage(UIImage(named: "search_icon"), for:  UISearchBar.Icon.search, state: .normal)
         searchController.searchBar.tintColor = UIColor(netHex: 0x006ED5)
         if #available(iOS 11.0, *) {
@@ -61,11 +72,19 @@ class MainViewController: UIViewController {
         } else {
             // Fallback on earlier versions
         }
+        
+        let searchInput = searchController.searchBar.rx.text
+            .orEmpty
+            .debounce(RxTimeInterval.seconds(1), scheduler: MainScheduler.instance)
+            .filter{ $0.count > 0 }
+            .asObservable()
+        
+        searchInput.subscribe(onNext: { [weak self] text in
+            self?.moviesViewModel.callFuntionToGetSearchResults(searchText: text)
+        })
     }
     
     func callToViewModelForUIUpdate() {
-        self.moviesViewModel = MoviesViewModel()
-        
         self.moviesViewModel.media.asObservable().bind(to: self.moviesTableView.rx.items) { (tableView, row, element ) in
             switch element {
             case .movie:
