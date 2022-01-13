@@ -11,10 +11,12 @@ import RxCocoa
 
 class PersonViewModel: NSObject {
     
-    var profilePath: Box<String?> = Box(nil)
-    var name: Box<String?> = Box(" ")
-    var biography: Box<String?> = Box(" ")
-    var movieCredits: Box<[Movie]?> = Box(nil)
+    private(set) var bag = DisposeBag()
+    var profilePath = BehaviorRelay<String>(value: "")
+    var name = BehaviorRelay<String>(value: "")
+    var biography = BehaviorRelay<String>(value: "")
+    var movieCredits = BehaviorRelay<[Movie]>(value: [])
+    var isLoading = BehaviorRelay<Bool>(value: false)
     
     // api service
     private var apiService: APIService!
@@ -27,20 +29,24 @@ class PersonViewModel: NSObject {
     }
     
     func callFunctionToGetPerson(id: Int) {
+        isLoading.accept(true)
         apiService.getPerson(id: id)
             .observe(on: MainScheduler.instance)
+            .do(onNext: { [weak self] _ in self?.isLoading.accept(false) })
             .subscribe(onNext: { [weak self] person in
-                self?.profilePath.value = person.profilePath
-                self?.name.value = person.name
-                self?.biography.value = person.biography
-            })
+                guard let self = self else { return }
+                self.profilePath.accept(person.profilePath ?? "")
+                self.name.accept(person.name ?? "")
+                self.biography.accept(person.biography ?? "")
+            }).disposed(by: bag)
     }
     
     func callFunctionToGetMovieCredits(id: Int) {
         apiService.getMovieCredits(id: id)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movieCreditResponse in
-                self?.movieCredits.value = movieCreditResponse.cast
+                guard let self = self else { return }
+                self.movieCredits.accept(movieCreditResponse.cast ?? [])
             })
     }
 }

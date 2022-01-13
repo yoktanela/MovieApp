@@ -8,9 +8,12 @@
 import Foundation
 import UIKit
 import Kingfisher
+import RxCocoa
+import RxSwift
 
 class PersonDetailViewController: UIViewController {
     
+    private let disposeBag = DisposeBag()
     var personId: Int!
     var personViewModel: PersonViewModel!
     
@@ -95,7 +98,6 @@ class PersonDetailViewController: UIViewController {
         moviesCollectionView.backgroundColor = UIColor.white
         moviesCollectionView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(moviesCollectionView)
-        moviesCollectionView.delegate = self
         let moviesCollectionViewTop = moviesCollectionView.topAnchor.constraint(equalTo: movieCreditsLabel.bottomAnchor, constant: 10)
         let moviesCollectionViewBottom = moviesCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -20)
         let moviesCollectionViewLeft = moviesCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
@@ -109,46 +111,32 @@ class PersonDetailViewController: UIViewController {
     }
     
     func callToViewModelForUIUpdate() {
-        personViewModel.profilePath.bind { [weak self] profilePath in
-            if let profilePath = profilePath, let url = URL(string: Constants.imageBaseURL + profilePath) {
-                let resource = ImageResource(downloadURL: url)
-                self?.profileImageView.kf.setImage(with: resource)
+        personViewModel.name.asDriver().drive(self.navigationItem.rx.title)
+        personViewModel.biography.asDriver().drive(self.biographyTextView.rx.text)
+        
+        personViewModel.profilePath.flatMap{ path -> Observable<ImageResource> in
+            guard let url = URL(string: Constants.imageBaseURL + path) else {
+                return Observable.empty()
             }
+            return .just(ImageResource(downloadURL: url))
         }
-           
-        personViewModel.name.bind { [weak self] name in
-            self?.navigationItem.title = name
-        }
+        .observe(on: MainScheduler.instance)
+        .subscribe(onNext: { [weak self] imgSource in
+            self?.profileImageView.kf.setImage(with: imgSource)
+        })
         
-        personViewModel.biography.bind { [weak self] biography in
-            self?.biographyTextView.text = biography
-        }
+        self.personViewModel.movieCredits.asObservable().bind(to: self.moviesCollectionView.rx.items) { (tableView, row, element ) in
+            let cell = self.moviesCollectionView.dequeueReusableCell(withReuseIdentifier: "castCell", for: IndexPath(row : row, section : 0)) as! CastMemberCollectionViewCell
+            cell.nameLabel.text = element.originalTitle
+            cell.roleLabel.text = element.character
+            return cell
+        }.disposed(by: disposeBag)
         
-        personViewModel.movieCredits.bind { [weak self] movieCredits in
-            self?.castDataSource = CollectionViewDataSource(cellIdentifier: "castCell", items: movieCredits ?? [], configureCell: { (cell, cast) in
-                cell.nameLabel.text = cast.originalTitle
-                cell.roleLabel.text = cast.character
+        self.moviesCollectionView.rx.modelSelected(Movie.self)
+            .subscribe(onNext: { movie in
+                let movieDetailViewController = MovieDetailViewController()
+                movieDetailViewController.movieId = movie.id
+                self.navigationController?.pushViewController(movieDetailViewController, animated: true)
             })
-            
-            DispatchQueue.main.async {
-                self?.moviesCollectionView.dataSource = self?.castDataSource
-                self?.moviesCollectionView.reloadData()
-            }
-        }
-    }
-}
-
-extension PersonDetailViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let movies = personViewModel.movieCredits.value
-        if indexPath.row < movies?.count ?? 0 {
-            let movie = movies?[indexPath.row]
-            guard let movieId = movie?.id else {
-                return
-            }
-            let movieDetailVC = MovieDetailViewController()
-            movieDetailVC.movieId = movieId
-            self.navigationController?.pushViewController(movieDetailVC, animated: true)
-        }
     }
 }
