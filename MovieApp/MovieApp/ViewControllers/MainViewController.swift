@@ -82,6 +82,7 @@ class MainViewController: UIViewController {
         searchInput.subscribe(onNext: { [weak self] text in
             self?.moviesViewModel.callFuntionToGetSearchResults(searchText: text)
         })
+        .disposed(by: disposeBag)
         
         let cancelSearch =  searchController.searchBar.rx.text
             .filter{ $0?.count == 0 }
@@ -97,6 +98,7 @@ class MainViewController: UIViewController {
         cancel.subscribe(onNext: { [weak self] cancel in
             self?.moviesViewModel.clearSearchResults()
         })
+        .disposed(by: disposeBag)
     }
     
     func callToViewModelForUIUpdate() {
@@ -143,6 +145,7 @@ extension MainViewController: UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        //TODO: Fix headers for sections
         var headerTitle = "Movies"
         
         let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))

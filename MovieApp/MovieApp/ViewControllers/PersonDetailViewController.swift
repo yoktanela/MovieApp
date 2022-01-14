@@ -111,8 +111,13 @@ class PersonDetailViewController: UIViewController {
     }
     
     func callToViewModelForUIUpdate() {
-        personViewModel.name.asDriver().drive(self.navigationItem.rx.title)
-        personViewModel.biography.asDriver().drive(self.biographyTextView.rx.text)
+        personViewModel.name.asDriver()
+            .drive(self.navigationItem.rx.title)
+            .disposed(by: disposeBag)
+        
+        personViewModel.biography.asDriver()
+            .drive(self.biographyTextView.rx.text)
+            .disposed(by: disposeBag)
         
         personViewModel.profilePath.flatMap{ path -> Observable<ImageResource> in
             guard let url = URL(string: Constants.imageBaseURL + path) else {
@@ -124,13 +129,15 @@ class PersonDetailViewController: UIViewController {
         .subscribe(onNext: { [weak self] imgSource in
             self?.profileImageView.kf.setImage(with: imgSource)
         })
+        .disposed(by: disposeBag)
         
         self.personViewModel.movieCredits.asObservable().bind(to: self.moviesCollectionView.rx.items) { (tableView, row, element ) in
             let cell = self.moviesCollectionView.dequeueReusableCell(withReuseIdentifier: "castCell", for: IndexPath(row : row, section : 0)) as! CastMemberCollectionViewCell
             cell.nameLabel.text = element.originalTitle
             cell.roleLabel.text = element.character
             return cell
-        }.disposed(by: disposeBag)
+        }
+        .disposed(by: disposeBag)
         
         self.moviesCollectionView.rx.modelSelected(Movie.self)
             .subscribe(onNext: { movie in
@@ -138,5 +145,6 @@ class PersonDetailViewController: UIViewController {
                 movieDetailViewController.movieId = movie.id
                 self.navigationController?.pushViewController(movieDetailViewController, animated: true)
             })
+            .disposed(by: disposeBag)
     }
 }

@@ -7,12 +7,24 @@
 
 import Foundation
 import UIKit
+import RxSwift
+import RxCocoa
 
 class StarRatingView: UIView {
     
     var starImageViews: [UIImageView] = []
     private var starCount = 5
     private var padding: CGFloat = 1.0
+    private var _rating = 0.0
+    open var rating: Double {
+        set {
+            _rating = newValue
+            self.setRate(rating: Float(_rating/2))
+        }
+        get {
+            return _rating
+        }
+    }
     
     override init(frame: CGRect) {
         super.init(frame: frame)

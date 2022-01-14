@@ -8,9 +8,12 @@
 import Foundation
 import UIKit
 import Kingfisher
+import RxSwift
+import RxCocoa
 
 class MovieDetailViewController: UIViewController {
 
+    private let disposeBag = DisposeBag()
     var movieId: Int!
     
     var coverImageView: UIImageView = {
@@ -138,7 +141,6 @@ class MovieDetailViewController: UIViewController {
         videosCollectionView.backgroundColor = UIColor.white
         videosCollectionView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(videosCollectionView)
-        videosCollectionView.delegate = self
         let videosTableViewTop = videosCollectionView.topAnchor.constraint(equalTo: videosLabel.bottomAnchor, constant: 10)
         let videosTableViewLeft = videosCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
         let videosTableViewRight = videosCollectionView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 0)
@@ -162,7 +164,6 @@ class MovieDetailViewController: UIViewController {
         castCollectionView.backgroundColor = UIColor.white
         castCollectionView.translatesAutoresizingMaskIntoConstraints = false
         self.view.addSubview(castCollectionView)
-        self.castCollectionView.delegate = self
         let castTableViewTop = castCollectionView.topAnchor.constraint(equalTo: castLabel.bottomAnchor, constant: 10)
         let castTableViewBottom = castCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -20)
         let castTableViewLeft = castCollectionView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 10)
@@ -176,89 +177,67 @@ class MovieDetailViewController: UIViewController {
     }
     
     func callToViewModelForUIUpdate() {
-        movieViewModel.originalTitle.bind {  [weak self] title in
-            self?.navigationItem.title = title
-        }
-        
-        movieViewModel.backdropPath.bind { [weak self] backdropPath in
-            if let backdropPath = backdropPath, let url = URL(string: Constants.imageBaseURL + backdropPath) {
-                let resource = ImageResource(downloadURL: url)
-                self?.coverImageView.kf.setImage(with: resource)
-            }
-        }
-        
-        movieViewModel.voteAverage.bind { [weak self] average in
-            if let average = average {
-                self?.starRatingView.setRate(rating: Float(average/2))
-                self?.voteAvarageLabel.text = String(describing: average)
-            }
-        }
-        
-        movieViewModel.overview.bind { [weak self] overview in
-            if let overview = overview {
-                self?.overviewTextView.text = overview
-            }
-        }
-        
-        movieViewModel.videos.bind { videos in
-            self.updateDataSource(videos: videos ?? [])
-        }
-        
-        movieViewModel.cast.bind { cast in
-            self.updateDataForCastSource(cast: cast ?? [])
-        }
-    }
-    
-    func updateDataSource(videos: [Video]){
-        self.videosDataSource = CollectionViewDataSource(cellIdentifier: "videoCell", items: videos, configureCell: { (cell, video) in
-            cell.setVideoKey(key: video.key ?? "")
-        })
-        
-        DispatchQueue.main.async {
-            self.videosCollectionView.dataSource = self.videosDataSource
-            self.videosCollectionView.reloadData()
-        }
-    }
-    
-    func updateDataForCastSource(cast: [CastMember]){
-        self.castDataSource = CollectionViewDataSource(cellIdentifier: "castMemberCell", items: cast, configureCell: { (cell, castMember) in
-            cell.nameLabel.text = castMember.name
-            cell.roleLabel.text = castMember.character
-        })
-        
-        DispatchQueue.main.async {
-            self.castCollectionView.dataSource = self.castDataSource
-            self.castCollectionView.reloadData()
-        }
-    }
-}
+        movieViewModel.originalTitle.asDriver()
+            .drive(self.navigationItem.rx.title)
+            .disposed(by: disposeBag)
 
-extension MovieDetailViewController: UICollectionViewDelegate {
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if collectionView == videosCollectionView {
-            let videos = movieViewModel.videos.value
-            if indexPath.row < videos?.count ?? 0 {
-                let video = videos?[indexPath.row]
-                guard let videoKey = video?.key else {
+        movieViewModel.backdropPath.flatMap{ path -> Observable<ImageResource> in
+            guard let url = URL(string: Constants.imageBaseURL + path) else {
+                return Observable.empty()
+            }
+            return .just(ImageResource(downloadURL: url))
+        }
+        .observe(on: MainScheduler.instance)
+        .subscribe(onNext: { [weak self] imgSource in
+            self?.coverImageView.kf.setImage(with: imgSource)
+        })
+        .disposed(by: disposeBag)
+        
+        let voteAverage = movieViewModel.voteAverage.asDriver()
+        voteAverage.map { String(describing: $0) }
+            .drive(self.voteAvarageLabel.rx.text)
+            .disposed(by: disposeBag)
+        voteAverage.drive(self.starRatingView.rx.rating)
+            .disposed(by: disposeBag)
+    
+        movieViewModel.overview.asDriver()
+            .drive(self.overviewTextView.rx.text)
+            .disposed(by: disposeBag)
+        
+        movieViewModel.videos.asObservable()
+            .bind(to: self.videosCollectionView.rx.items) { (tableView, row, element) in
+                let cell = self.videosCollectionView.dequeueReusableCell(withReuseIdentifier: "videoCell", for: IndexPath(row: row, section: 0)) as! VideoCollectionViewCell
+                cell.setVideoKey(key: element.key ?? "")
+                return cell
+            }
+            .disposed(by: disposeBag)
+        
+        self.videosCollectionView.rx.modelSelected(Video.self)
+            .subscribe(onNext: { video in
+                guard let videoKey = video.key else {
                     return
                 }
                 let playerVC = VideoPlayerViewController()
                 playerVC.videoKey = videoKey
-                self.navigationController?.present(playerVC, animated: true, completion: {
-                    
-                })
+                self.navigationController?.present(playerVC, animated: true, completion: nil)
+            })
+            .disposed(by: disposeBag)
+        
+        movieViewModel.cast.asObservable()
+            .bind(to: self.castCollectionView.rx.items) { (tableView, row, element) in
+                let cell = self.castCollectionView.dequeueReusableCell(withReuseIdentifier: "castMemberCell", for: IndexPath(row: row, section: 0)) as! CastMemberCollectionViewCell
+                cell.nameLabel.text = element.name
+                cell.roleLabel.text = element.character
+                return cell
             }
-        } else if collectionView == castCollectionView {
-            let cast = movieViewModel.cast.value
-            if indexPath.row < cast?.count ?? 0 {
-                let castMember = cast?[indexPath.row]
-                guard let personId = castMember?.id else {
-                    return
-                }
+            .disposed(by: disposeBag)
+        
+        self.castCollectionView.rx.modelSelected(CastMember.self)
+            .subscribe(onNext: { castMember in
                 let personVC = PersonDetailViewController()
-                personVC.personId = personId
+                personVC.personId = castMember.id
                 self.navigationController?.pushViewController(personVC, animated: true)
-            }
-        }
+            })
+            .disposed(by: disposeBag)
     }
 }

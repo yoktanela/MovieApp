@@ -38,7 +38,8 @@ class PersonViewModel: NSObject {
                 self.profilePath.accept(person.profilePath ?? "")
                 self.name.accept(person.name ?? "")
                 self.biography.accept(person.biography ?? "")
-            }).disposed(by: bag)
+            })
+            .disposed(by: bag)
     }
     
     func callFunctionToGetMovieCredits(id: Int) {
@@ -48,6 +49,7 @@ class PersonViewModel: NSObject {
                 guard let self = self else { return }
                 self.movieCredits.accept(movieCreditResponse.cast ?? [])
             })
+            .disposed(by: bag)
     }
 }
 

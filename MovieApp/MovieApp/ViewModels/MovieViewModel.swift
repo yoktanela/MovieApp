@@ -11,12 +11,13 @@ import RxCocoa
 
 class MovieViewModel: NSObject {
     
-    var originalTitle: Box<String?> = Box(" ")
-    var backdropPath: Box<String?> = Box(" ")
-    var overview: Box<String?> = Box(" ")
-    let voteAverage: Box<Double?> = Box(nil)
-    let videos: Box<[Video]?> = Box(nil)
-    let cast: Box<[CastMember]?> = Box(nil)
+    private(set) var bag = DisposeBag()
+    var originalTitle = BehaviorRelay<String>(value: "")
+    var backdropPath = BehaviorRelay<String>(value: "")
+    var overview = BehaviorRelay<String>(value: "")
+    let voteAverage = BehaviorRelay<Double>(value: 0.0)
+    let videos = BehaviorRelay<[Video]>(value: [])
+    let cast = BehaviorRelay<[CastMember]>(value: [])
     
     // api service
     private var apiService: APIService!
@@ -33,26 +34,32 @@ class MovieViewModel: NSObject {
         apiService.getMovie(id: id)
             .observe(on: MainScheduler.instance)
             .subscribe( onNext: {[weak self] movie in
-                self?.originalTitle.value = movie.originalTitle
-                self?.backdropPath.value = movie.backdropPath
-                self?.overview.value = movie.overview
-                self?.voteAverage.value = movie.voteAverage
+                guard let self = self else { return }
+                self.originalTitle.accept(movie.originalTitle ?? "")
+                self.backdropPath.accept(movie.backdropPath ?? "")
+                self.overview.accept(movie.overview ?? "")
+                self.voteAverage.accept(movie.voteAverage)
             })
+            .disposed(by: bag)
     }
     
     func callFunctionToGetVideos(id: Int) {
         apiService.getVideos(id: id)
             .observe(on: MainScheduler.instance)
             .subscribe( onNext: {[weak self] videoResult in
-                self?.videos.value = videoResult.results
+                guard let self = self else { return }
+                self.videos.accept(videoResult.results)
             })
+            .disposed(by: bag)
     }
     
     func callFunctionToGetCast(id: Int) {
         apiService.getCast(id: id)
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] cast in
-                self?.cast.value = cast.cast
+                guard let self = self else { return }
+                self.cast.accept(cast.cast)
             })
+            .disposed(by: bag)
     }
 }

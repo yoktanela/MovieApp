@@ -30,18 +30,22 @@ class MoviesViewModel: NSObject {
                 self.media.add(element: Media.movie(movie))
             }
         })
+        .disposed(by: disposeBag)
         
         self.people.subscribe(onNext: { personList in
             personList.forEach { person in
                 self.media.add(element: Media.person(person))
             }
         })
+        .disposed(by: disposeBag)
     }
     
     func callFunctionToGetMovieData(page: Int = 1) {
         let search = apiService.getPopularMovies(page: page).asObservable()
         
-        search.map{_ in false}.asObservable().bind(to: self.running)
+        search.map{_ in false}.asObservable()
+            .bind(to: self.running)
+            .disposed(by: disposeBag)
         
         search.subscribe(onNext: { [weak self] movieList in
                 guard let oldDatas = self?.movies.value else {
@@ -50,13 +54,16 @@ class MoviesViewModel: NSObject {
                 }
                 self?.movies.accept(oldDatas + movieList)
         })
+        .disposed(by: disposeBag)
     }
     
     func callFuntionToGetSearchResults(searchText: String) {
         self.running.accept(true)
         let search = apiService.getSearchResults(searchText: searchText)
         
-        search.map{_ in false}.asObservable().bind(to: self.running)
+        search.map{_ in false}.asObservable()
+            .bind(to: self.running)
+            .disposed(by: disposeBag)
         
         search.observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] movieList, personList in
@@ -69,6 +76,7 @@ class MoviesViewModel: NSObject {
                 }
                 self?.media.accept(mediaList)
             })
+            .disposed(by: disposeBag)
     }
     
     func clearSearchResults() {
