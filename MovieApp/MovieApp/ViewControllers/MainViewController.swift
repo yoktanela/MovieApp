@@ -8,6 +8,7 @@
 import UIKit
 import RxSwift
 import RxCocoa
+import RxDataSources
 
 class MainViewController: UIViewController {
 
@@ -19,7 +20,7 @@ class MainViewController: UIViewController {
     private var moviesViewModel: MoviesViewModel!
     private var dataSource : MovieTableViewDataSource<MovieTableViewCell,Movie>!
     private var page: Int = 1
-    private var searchMode = false
+    private var inSearchMode = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,6 +82,7 @@ class MainViewController: UIViewController {
         
         searchInput.subscribe(onNext: { [weak self] text in
             self?.moviesViewModel.callFuntionToGetSearchResults(searchText: text)
+            self?.inSearchMode = true
         })
         .disposed(by: disposeBag)
         
@@ -97,25 +99,63 @@ class MainViewController: UIViewController {
         
         cancel.subscribe(onNext: { [weak self] cancel in
             self?.moviesViewModel.clearSearchResults()
+            self?.inSearchMode = false
         })
         .disposed(by: disposeBag)
     }
     
     func callToViewModelForUIUpdate() {
-        self.moviesViewModel.media.asObservable().bind(to: self.moviesTableView.rx.items) { (tableView, row, element ) in
-            switch element {
-            case .movie:
-                let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: IndexPath(row : row, section : 0)) as! MovieTableViewCell
-                cell.customizeCell(movie: element.get() as! Movie)
-                return cell
-            case .person:
-                let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: IndexPath(row : row, section : 1)) as! PersonTableViewCell
-                cell.customizeCell(person: element.get() as! Person)
-                return cell
-            default:
-                return UITableViewCell()
+        let dataSource = RxTableViewSectionedReloadDataSource<SectionOfCustomData>(
+            configureCell: { (_, tableView, indexPath, element) in
+                switch element {
+                case .movie:
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "MovieTableViewCell", for: indexPath) as! MovieTableViewCell
+                    cell.customizeCell(movie: element.get() as! Movie)
+                    return cell
+                case .person:
+                    let cell = tableView.dequeueReusableCell(withIdentifier: "PersonTableViewCell", for: indexPath) as! PersonTableViewCell
+                    cell.customizeCell(person: element.get() as! Person)
+                    return cell
+                default:
+                    return UITableViewCell()
+                }
+            },
+            titleForHeaderInSection: { dataSource, sectionIndex in
+                return dataSource[sectionIndex].header
             }
-        }.disposed(by: disposeBag)
+        )
+
+        dataSource.canEditRowAtIndexPath = { dataSource, indexPath in
+          return true
+        }
+
+        dataSource.canMoveRowAtIndexPath = { dataSource, indexPath in
+          return true
+        }
+        
+        let sections = BehaviorRelay<[SectionOfCustomData]>.init(value: [])
+        
+        self.moviesViewModel.media
+            .observe(on: MainScheduler.instance)
+            .subscribe(onNext: { media in
+                let movies = media.filter{ $0.get() is Movie }
+                let people = media.filter{ $0.get() is Person }
+                
+                var sectionList: [SectionOfCustomData] = []
+                if movies.count != 0 {
+                    sectionList.append(SectionOfCustomData(header: "Movies", items: movies))
+                }
+                if people.count != 0 {
+                    sectionList.append(SectionOfCustomData(header: "People", items: people))
+
+                }
+                sections.accept(sectionList)
+            })
+            .disposed(by: disposeBag)
+        
+        sections
+          .bind(to: moviesTableView.rx.items(dataSource: dataSource))
+          .disposed(by: disposeBag)
         
         self.moviesTableView.rx.modelSelected(Media.self)
             .subscribe(onNext: { media in
@@ -138,18 +178,23 @@ class MainViewController: UIViewController {
 
 extension MainViewController: UITableViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if (((scrollView.contentOffset.y + scrollView.frame.size.height) > scrollView.contentSize.height )){
+        if (((scrollView.contentOffset.y + scrollView.frame.size.height) > scrollView.contentSize.height ) && !inSearchMode){
             page += 1
             moviesViewModel.callFunctionToGetMovieData(page: page)
         }
     }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        //TODO: Fix headers for sections
-        var headerTitle = "Movies"
-        
-        let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
-        headerView.setTitle(title: headerTitle)
-        return headerView
-    }
+}
+
+struct SectionOfCustomData {
+  var header: String
+  var items: [Item]
+}
+
+extension SectionOfCustomData: SectionModelType {
+  typealias Item = Media
+
+   init(original: SectionOfCustomData, items: [Item]) {
+    self = original
+    self.items = items
+  }
 }
