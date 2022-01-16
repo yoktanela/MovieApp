@@ -6,55 +6,85 @@
 //
 
 import Foundation
+import RxSwift
+import RxCocoa
 
 class MoviesViewModel: NSObject {
     
     // api service
     private var apiService: APIService!
-    private(set) var movies : [Movie]! {
-        didSet {
-            self.bindMoviesViewModelToController()
-        }
-    }
+    private let disposeBag = DisposeBag()
     
-    private(set) var moviesSearchResult : [Movie]? {
-        didSet {
-            self.bindMoviesSearchResultsViewModelToController()
-        }
-    }
-    
-    private(set) var peopleSearchResult : [Person]? {
-        didSet {
-            self.bindPeopleSearchResultsViewModelToController()
-        }
-    }
-    
-    var bindMoviesViewModelToController : (() -> ()) = {}
-    var bindMoviesSearchResultsViewModelToController : (() -> ()) = {}
-    var bindPeopleSearchResultsViewModelToController : (() -> ()) = {}
-    
+    var movies = BehaviorRelay<[Movie]>(value: [])
+    var people = BehaviorRelay<[Person]>(value: [])
+    var media = BehaviorRelay<[Media]>(value: [])
+    var running = BehaviorRelay<Bool>(value: true)
+
     override init() {
         super.init()
-        movies = []
         apiService = APIService()
         callFunctionToGetMovieData()
+        
+        self.movies.subscribe(onNext: { movieList in
+            movieList.forEach { movie in
+                self.media.add(element: Media.movie(movie))
+            }
+        })
+        .disposed(by: disposeBag)
+        
+        self.people.subscribe(onNext: { personList in
+            personList.forEach { person in
+                self.media.add(element: Media.person(person))
+            }
+        })
+        .disposed(by: disposeBag)
     }
     
     func callFunctionToGetMovieData(page: Int = 1) {
-        apiService.getPopularMovies(page: page) { [weak self] success, message, list in
-            self?.movies.append(contentsOf: list ?? [])
-        }
+        let search = apiService.getPopularMovies(page: page).asObservable()
+        
+        search.map{_ in false}.asObservable()
+            .bind(to: self.running)
+            .disposed(by: disposeBag)
+        
+        search.subscribe(onNext: { [weak self] movieList in
+                guard let oldDatas = self?.movies.value else {
+                    self?.movies.accept(movieList)
+                    return
+                }
+                self?.movies.accept(oldDatas + movieList)
+        })
+        .disposed(by: disposeBag)
     }
     
     func callFuntionToGetSearchResults(searchText: String) {
-        apiService.getSearchResults(searchText: searchText) { [weak self] success, message, movieList, personList in
-            self?.moviesSearchResult = movieList
-            self?.peopleSearchResult = personList
-        }
+        self.running.accept(true)
+        let search = apiService.getSearchResults(searchText: searchText)
+        
+        search.map{_ in false}.asObservable()
+            .bind(to: self.running)
+            .disposed(by: disposeBag)
+        
+        search.observe(on: MainScheduler.instance)
+            .subscribe(onNext: { [weak self] movieList, personList in
+                var mediaList: [Media] = []
+                movieList.forEach { movie in
+                    mediaList.append(Media.movie(movie))
+                }
+                personList.forEach { person in
+                    mediaList.append(Media.person(person))
+                }
+                self?.media.accept(mediaList)
+            })
+            .disposed(by: disposeBag)
     }
     
     func clearSearchResults() {
-        self.moviesSearchResult = nil
-        self.peopleSearchResult = nil
+        self.running.accept(false)
+        self.media.accept([])
+        self.movies.value.forEach { movie in
+            let media = Media.movie(movie)
+            self.media.add(element: media)
+        }
     }
 }

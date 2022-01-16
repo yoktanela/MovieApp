@@ -9,6 +9,9 @@ target 'MovieApp' do
   pod 'Alamofire'
   pod 'Kingfisher'
   pod "youtube-ios-player-helper"
+  pod 'RxSwift'
+  pod 'RxCocoa'
+  pod 'RxDataSources'
 
   target 'MovieAppTests' do
     inherit! :search_paths
