@@ -15,6 +15,7 @@ class MainViewController: UIViewController {
     var searchController: UISearchController!
     var moviesTableView: UITableView!
     var activityIndicator: UIActivityIndicatorView!
+    public let noResultView = NoResultView()
     
     private let disposeBag = DisposeBag()
     private var moviesViewModel: MoviesViewModel!
@@ -38,6 +39,14 @@ class MainViewController: UIViewController {
         self.activityIndicator = UIActivityIndicatorView(style: UIActivityIndicatorView.Style.gray)
         activityIndicator.center = self.view.center
         self.view.addSubview(activityIndicator)
+        
+        self.view.addSubview(noResultView)
+        noResultView.translatesAutoresizingMaskIntoConstraints = false
+        let top = noResultView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 0)
+        let bottom = noResultView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: 0)
+        let left = noResultView.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: 0)
+        let right = noResultView.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: 0)
+        self.view.addConstraints([top, bottom, left, right])
         
         self.moviesViewModel = MoviesViewModel()
         
@@ -132,6 +141,12 @@ class MainViewController: UIViewController {
         dataSource.canMoveRowAtIndexPath = { dataSource, indexPath in
           return true
         }
+        
+        self.moviesViewModel.media
+            .map { $0.count == 0 ? false : true}
+            .asDriver(onErrorJustReturn: false)
+            .drive(self.noResultView.rx.isHidden)
+            .disposed(by: disposeBag)
         
         let sections = BehaviorRelay<[SectionOfCustomData]>.init(value: [])
         
