@@ -19,9 +19,9 @@ class MainViewController: UIViewController {
     
     private let disposeBag = DisposeBag()
     private var moviesViewModel: MoviesViewModel!
-    private var dataSource : MovieTableViewDataSource<MovieTableViewCell,Movie>!
     private var page: Int = 1
     private var inSearchMode = false
+    private var dataSource: RxTableViewSectionedReloadDataSource<SectionOfCustomData>? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -114,7 +114,7 @@ class MainViewController: UIViewController {
     }
     
     func callToViewModelForUIUpdate() {
-        let dataSource = RxTableViewSectionedReloadDataSource<SectionOfCustomData>(
+        self.dataSource = RxTableViewSectionedReloadDataSource<SectionOfCustomData>(
             configureCell: { (_, tableView, indexPath, element) in
                 switch element {
                 case .movie:
@@ -134,11 +134,11 @@ class MainViewController: UIViewController {
             }
         )
 
-        dataSource.canEditRowAtIndexPath = { dataSource, indexPath in
+        self.dataSource?.canEditRowAtIndexPath = { dataSource, indexPath in
           return true
         }
 
-        dataSource.canMoveRowAtIndexPath = { dataSource, indexPath in
+        self.dataSource?.canMoveRowAtIndexPath = { dataSource, indexPath in
           return true
         }
         
@@ -168,9 +168,11 @@ class MainViewController: UIViewController {
             })
             .disposed(by: disposeBag)
         
-        sections
-          .bind(to: moviesTableView.rx.items(dataSource: dataSource))
-          .disposed(by: disposeBag)
+        if let dataSource = dataSource {
+            sections
+              .bind(to: moviesTableView.rx.items(dataSource: dataSource))
+              .disposed(by: disposeBag)
+        }
         
         self.moviesTableView.rx.modelSelected(Media.self)
             .subscribe(onNext: { media in
@@ -198,6 +200,13 @@ extension MainViewController: UITableViewDelegate {
             moviesViewModel.callFunctionToGetMovieData(page: page)
         }
     }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let headerView: SectionHeaderView = SectionHeaderView.init(frame: CGRect.init(x: tableView.frame.minX, y: tableView.frame.minY, width: tableView.frame.width, height: 50))
+        headerView.setTitle(title: dataSource?[section].header ?? "")
+        return headerView
+    }
+
 }
 
 struct SectionOfCustomData {

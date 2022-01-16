@@ -10,7 +10,12 @@ import UIKit
 
 class SectionHeaderView: UIView {
     
-    private let titleLabel = UILabel()
+    private let titleLabel: UILabel = {
+        var lbl = UILabel()
+        lbl.textColor = UIColor.init(netHex: 0x707070)
+        lbl.font = UIFont.systemFont(ofSize: 20, weight: .semibold)
+        return lbl
+    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
