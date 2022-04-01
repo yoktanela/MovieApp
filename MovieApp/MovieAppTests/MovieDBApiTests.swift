@@ -6,259 +6,274 @@
 //
 
 import XCTest
+import RxSwift
+import RxCocoa
+
 @testable import MovieApp
 
 class MovieDBApiTests: XCTestCase {
     
-    // MARK: Tests for getPopularMovies
-    func testGetMoviesWithExpectedResult() throws {
-        var moviesResponse: [Movie]?
-        let moviesExpectation = expectation(description: "movies")
-        
-        let apiService = APIService()
-        apiService.getPopularMovies(completion: { success, message, movieData in
-            moviesResponse = movieData
-            moviesExpectation.fulfill()
-        })
-        
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(moviesResponse)
-        }
+    private var apiService: APIService!
+    private var disposeBag: DisposeBag!
+    
+    override func setUp() {
+        super.setUp()
+        apiService = APIService()
+        disposeBag = DisposeBag()
     }
     
-    func testGetMoviesWithPageExceedError() throws {
-        let apiService = APIService()
+    override func tearDown() {
+        apiService = nil
+        disposeBag = nil
+        super.tearDown()
+    }
+    
+    // MARK: Tests for getPopularMovies
+    func test_getMovies() {
         let moviesExpectation = expectation(description: "movies")
-        var errorResponse: String?
+        var movies: [Movie]?
         
-        apiService.getPopularMovies(page: 1000, completion: { success, message, movieData in
-            errorResponse = message
-            moviesExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(errorResponse)
-        }
+        apiService.getPopularMovies()
+            .subscribe(onNext: { movieList in
+                movies = movieList
+                moviesExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(movies)
+    }
+    
+    func test_getMoviesWithError() throws {
+        let moviesExpectation = expectation(description: "movies")
+        var errorResponse: Error?
+        
+        apiService.getPopularMovies(page: 1000)
+            .subscribe(onError: { error in
+                errorResponse = error
+                moviesExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(errorResponse)
     }
     
     // MARK: Tests for getMovie
-    func testGetMovieWithExpectedResult() throws {
+    func test_getMovie() {
         var movieResponse: Movie?
         let movieExpectation = expectation(description: "movie")
-        
-        let apiService = APIService()
         let movieId = 121
-        apiService.getMovie(id: movieId, completion: { success, message, movieData in
-            movieResponse = movieData
-            movieExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(movieResponse)
-        }
+        
+        apiService.getMovie(id: movieId)
+            .subscribe(onNext: { movie in
+                movieResponse = movie
+                movieExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(movieResponse)
     }
     
-    func testGetMovieWithErrorResult() throws {
+    func test_getMovieWithError() {
+        var errorResponse: Error?
         let movieExpectation = expectation(description: "movie")
-        var errorResponse: String?
-        
-        let apiService = APIService()
         let movieId = 100000
-        apiService.getMovie(id: movieId, completion: { success, message, movie in
-            errorResponse = message
-            movieExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(errorResponse)
-        }
+        
+        apiService.getMovie(id: movieId)
+            .subscribe(onError: { error in
+                errorResponse = error
+                movieExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(errorResponse)
     }
     
     // MARK: Tests for getPerson
-    func testGetPersonWithExpectedResult() throws {
+    func test_getPerson() {
         var personResponse: Person?
         let personExpectation = expectation(description: "person")
-        
-        let apiService = APIService()
         let personId = 113
-        apiService.getPerson(id: personId, completion: { success, message, movieData in
-            personResponse = movieData
-            personExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(personResponse)
-        }
+        
+        apiService.getPerson(id: personId)
+            .subscribe(onNext: { person in
+                personResponse = person
+                personExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(personResponse)
     }
     
-    func testGetPersonWithErrorResult() throws {
+    func test_getPersonWithError() {
+        var errorResponse: Error?
         let personExpectation = expectation(description: "person")
-        var errorResponse: String?
-        
-        let apiService = APIService()
         let personId = 1000000
-        apiService.getPerson(id: personId, completion: { success, message, person in
-            errorResponse = message
-            personExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(errorResponse)
-        }
+        
+        apiService.getPerson(id: personId)
+            .subscribe(onError: { error in
+                errorResponse = error
+                personExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(errorResponse)
     }
     
     // MARK: Tests for getSearchResults
-    func testGetSearchResultsWithExpectedResult() throws {
+    func test_getSearchResults() throws {
         var movies: [Movie]?
         var persons: [Person]?
         let searchExpectation = expectation(description: "search")
-        
-        let apiService = APIService()
         let searchText = "lotr"
-        apiService.getSearchResults(searchText: searchText, completion: { success, message, movieList, personList  in
-            movies = movieList
-            persons = personList
-            searchExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertTrue(movies != nil && persons != nil)
-        }
+        
+        apiService.getSearchResults(searchText: searchText)
+            .subscribe(onNext: { searchResult in
+                movies = searchResult.movies
+                persons = searchResult.persons
+                searchExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertTrue(movies != nil && persons != nil)
     }
     
-    func testGetSearchResultsWithTvResults() throws {
+    func test_getSearchResultsWithError() {
         var movies: [Movie]?
         var persons: [Person]?
         let searchExpectation = expectation(description: "search")
+        let searchText = "asdjnbjmnks"
         
-        let apiService = APIService()
-        let searchText = "fargo"
-        apiService.getSearchResults(searchText: searchText, completion: { success, message, movieList, personList  in
-            movies = movieList
-            persons = personList
-            searchExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertTrue(movies != nil && persons != nil)
-        }
-    }
-    
-    func testGetSearchResultsWithErrorResult() throws {
-        var movies: [Movie]?
-        var persons: [Person]?
-        let searchExpectation = expectation(description: "search")
+        apiService.getSearchResults(searchText: searchText)
+            .subscribe(onNext: { searchResult in
+                movies = searchResult.movies
+                persons = searchResult.persons
+                searchExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
         
-        let apiService = APIService()
-        let searchText = "asdmnks"
-        apiService.getSearchResults(searchText: searchText, completion: { success, message, movieList, personList  in
-            movies = movieList
-            persons = personList
-            searchExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertTrue(movies == nil && persons == nil)
-        }
+        waitForExpectations(timeout: 1)
+        XCTAssertTrue(movies?.count == 0 && persons?.count == 0)
     }
     
     // MARK: Tests for getCast
-    func testGetCastWithExpectedResult() throws {
+    func test_getCast() throws {
         var cast: Cast?
         let castExpectation = expectation(description: "cast")
-        
-        let apiService = APIService()
         let movieId = 121
-        apiService.getCast(id: movieId, completion: { success, message, result  in
-            cast = result
-            castExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(cast)
-        }
+        
+        apiService.getCast(id: movieId)
+            .subscribe(onNext: { result in
+                cast = result
+                castExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(cast)
     }
     
-    func testGetCastWithErrorResult() throws {
+    func test_getCastWithError() {
+        var errorResponse: Error?
         let castExpectation = expectation(description: "cast")
-        var errorResponse: String?
-        
-        let apiService = APIService()
         let movieId = 100000
-        apiService.getCast(id: movieId, completion: { success, message, result  in
-            errorResponse = message
-            castExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(errorResponse)
-        }
+        
+        apiService.getCast(id: movieId)
+            .subscribe(onError: { error in
+                errorResponse = error
+                castExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(errorResponse)
     }
     
     // MARK: Tests for getVideos
-    func testGetVideosWithExpectedResult() throws {
+    func test_getVideos() {
         var videoResult: VideoResult?
         let videoExpectation = expectation(description: "video")
-        
-        let apiService = APIService()
         let movieId = 121
-        apiService.getVideos(id: movieId, completion: { success, message, result  in
-            videoResult = result
-            videoExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(videoResult)
-        }
+        
+        apiService.getVideos(id: movieId)
+            .subscribe(onNext: { video in
+                videoResult = video
+                videoExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(videoResult)
     }
     
-    func testGetVideosWithErrorResult() throws {
+    func test_getVideosWithError() {
         let videoExpectation = expectation(description: "video")
-        var errorResponse: String?
-        
-        let apiService = APIService()
+        var errorResponse: Error?
         let movieId = 100000
-        apiService.getVideos(id: movieId, completion: { success, message, result  in
-            errorResponse = message
-            videoExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(errorResponse)
-        }
+        
+        apiService.getVideos(id: movieId)
+            .subscribe(onError: { error in
+                errorResponse = error
+                videoExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(errorResponse)
     }
     
     // MARK: Tests for getMovieCredits
-    func testGetMovieCreditsWithExpectedResult() throws {
+    func test_getMovieCredits() {
         var movies: MovieCreditResponse?
         let moviesExpectation = expectation(description: "movie_credits")
-        
-        let apiService = APIService()
         let personId = 113
-        apiService.getMovieCredits(id: personId, completion: { success, message, result  in
-            movies = result
-            moviesExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(movies)
-        }
+        
+        apiService.getMovieCredits(id: personId)
+            .subscribe(onNext: { result in
+                movies = result
+                moviesExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(movies)
     }
     
-    func testGetMovieCreditsWithErrorResult() throws {
+    func test_getMovieCreditsWithError() {
         let moviesExpectation = expectation(description: "movie_credits")
-        var errorResponse: String?
-        
-        let apiService = APIService()
+        var errorResponse: Error?
         let personId = 1000000
-        apiService.getMovieCredits(id: personId, completion: { success, message, result  in
-            errorResponse = message
-            moviesExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(errorResponse)
-        }
+        
+        apiService.getMovieCredits(id: personId)
+            .subscribe(onError: { error in
+                errorResponse = error
+                moviesExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(errorResponse)
     }
     
     // MARK: Tests for getGenres
-    func testGetGenresWithExpectedResult() throws {
+    func test_getGenres() throws {
         var genres: Genres?
         let genresExpectation = expectation(description: "genres")
         
-        let apiService = APIService()
-        apiService.getGenres( completion: { success, message, result  in
-            genres = result
-            genresExpectation.fulfill()
-        })
-        waitForExpectations(timeout: 1) { (error) in
-            XCTAssertNotNil(genres)
-        }
+        apiService.getGenres()
+            .subscribe(onNext: { result in
+                genres = result
+                genresExpectation.fulfill()
+            })
+            .disposed(by: disposeBag)
+        
+        waitForExpectations(timeout: 1)
+        XCTAssertNotNil(genres)
     }
 }
