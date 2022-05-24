@@ -44,7 +44,7 @@ class MovieDBApiTests: XCTestCase {
         XCTAssertNotNil(movies)
     }
     
-    func test_getMoviesWithError() throws {
+    func test_getMovies_shouldReturnError() {
         let moviesExpectation = expectation(description: "movies")
         var errorResponse: Error?
         
@@ -76,7 +76,7 @@ class MovieDBApiTests: XCTestCase {
         XCTAssertNotNil(movieResponse)
     }
     
-    func test_getMovieWithError() {
+    func test_getMovie_shouldReturnError() {
         var errorResponse: Error?
         let movieExpectation = expectation(description: "movie")
         let movieId = 100000
@@ -109,7 +109,7 @@ class MovieDBApiTests: XCTestCase {
         XCTAssertNotNil(personResponse)
     }
     
-    func test_getPersonWithError() {
+    func test_getPerson_shouldReturnError() {
         var errorResponse: Error?
         let personExpectation = expectation(description: "person")
         let personId = 1000000
@@ -144,7 +144,7 @@ class MovieDBApiTests: XCTestCase {
         XCTAssertTrue(movies != nil && persons != nil)
     }
     
-    func test_getSearchResultsWithError() {
+    func test_getSearchResults_shouldReturnError() {
         var movies: [Movie]?
         var persons: [Person]?
         let searchExpectation = expectation(description: "search")
@@ -179,7 +179,7 @@ class MovieDBApiTests: XCTestCase {
         XCTAssertNotNil(cast)
     }
     
-    func test_getCastWithError() {
+    func test_getCast_shouldReturnError() {
         var errorResponse: Error?
         let castExpectation = expectation(description: "cast")
         let movieId = 100000
@@ -212,7 +212,7 @@ class MovieDBApiTests: XCTestCase {
         XCTAssertNotNil(videoResult)
     }
     
-    func test_getVideosWithError() {
+    func test_getVideos_shouldReturnError() {
         let videoExpectation = expectation(description: "video")
         var errorResponse: Error?
         let movieId = 100000
@@ -245,7 +245,7 @@ class MovieDBApiTests: XCTestCase {
         XCTAssertNotNil(movies)
     }
     
-    func test_getMovieCreditsWithError() {
+    func test_getMovieCredits_shouldReturnError() {
         let moviesExpectation = expectation(description: "movie_credits")
         var errorResponse: Error?
         let personId = 1000000
